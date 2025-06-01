@@ -1,70 +1,417 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>دردشة العصابة</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>عصابة المبرمجين | دردشة تقنية</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body {
-      background: #111;
-      color: #eee;
-      font-family: Arial, sans-serif;
+    :root {
+      --primary: #4a6bff;
+      --secondary: #2ecc71;
+      --bg: #121212;
+      --card: #1e1e1e;
+      --text: #e0e0e0;
+      --border: #333;
+      --error: #ff4757;
+    }
+    
+    * {
+      box-sizing: border-box;
       margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
       display: flex;
       flex-direction: column;
-      height: 100vh;
+      line-height: 1.6;
     }
+    
+    header {
+      background: var(--card);
+      padding: 15px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+      position: relative;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    header .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
     #chat {
       flex: 1;
       overflow-y: auto;
-      padding: 10px;
-      border-bottom: 1px solid #444;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      scroll-behavior: smooth;
+      background: var(--bg);
     }
-    #chat div {
-      margin: 5px 0;
+    
+    .message {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 12px 15px;
+      margin-bottom: 12px;
+      max-width: 85%;
+      width: fit-content;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      animation: fadeIn 0.3s ease;
+      border: 1px solid var(--border);
     }
-    #chat div span.name {
-      color: #f44336;
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .message.sent {
+      align-self: flex-end;
+      background: #1a237e;
+      border-color: transparent;
+    }
+    
+    .message .name {
       font-weight: bold;
-      margin-right: 5px;
+      margin-bottom: 5px;
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
+    
+    .message.sent .name {
+      color: #bbdefb;
+    }
+    
+    .message .text {
+      word-break: break-word;
+    }
+    
+    .message .time {
+      font-size: 0.7rem;
+      opacity: 0.7;
+      text-align: left;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .message .time i {
+      font-size: 0.6rem;
+    }
+    
     #controls {
       display: flex;
-      padding: 10px;
-      background: #222;
+      padding: 12px;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      gap: 10px;
+      position: relative;
     }
-    #controls input {
-      padding: 10px;
-      margin-right: 10px;
+    
+    #message {
+      flex: 1;
+      padding: 12px 15px;
       border: none;
-      border-radius: 4px;
+      border-radius: 25px;
       background: #333;
-      color: #eee;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.2s;
     }
-    #controls button {
-      padding: 10px 20px;
-      background: #f44336;
+    
+    #message:focus {
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+    
+    #send {
+      padding: 0 20px;
+      background: var(--primary);
       border: none;
-      border-radius: 4px;
+      border-radius: 25px;
       color: white;
       font-weight: bold;
       cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 60px;
+    }
+    
+    #send:hover {
+      opacity: 0.9;
+    }
+    
+    #send:active {
+      transform: scale(0.95);
+    }
+    
+    #name-form {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.95);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 20px;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    #name-form.hidden {
+      display: none;
+    }
+    
+    #name-form .form-container {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 15px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
+    }
+    
+    #name-form h2 {
+      margin-bottom: 20px;
+      text-align: center;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    #name {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 15px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #333;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    
+    #name:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(74, 107, 255, 0.3);
+    }
+    
+    #save-name {
+      width: 100%;
+      padding: 15px;
+      background: var(--primary);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    #save-name:hover {
+      opacity: 0.9;
+    }
+    
+    #save-name:active {
+      transform: scale(0.98);
+    }
+    
+    .typing-indicator {
+      position: absolute;
+      top: -35px;
+      left: 15px;
+      right: 15px;
+      background: var(--card);
+      padding: 8px 12px;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .typing-indicator.visible {
+      opacity: 1;
+    }
+    
+    .typing-indicator .dots {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .typing-indicator .dot {
+      width: 8px;
+      height: 8px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out;
+    }
+    
+    .typing-indicator .dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .typing-indicator .dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
+    }
+    
+    .online-count {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.3);
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .online-count i {
+      color: var(--secondary);
+    }
+    
+    /* تأثيرات للهواتف */
+    @media (max-width: 768px) {
+      .message {
+        max-width: 90%;
+        padding: 10px 12px;
+      }
+      
+      #controls {
+        padding: 10px;
+      }
+      
+      #message {
+        padding: 12px;
+      }
+      
+      header {
+        font-size: 1.1rem;
+        padding: 12px;
+      }
+      
+      .online-count {
+        position: static;
+        transform: none;
+        margin-right: auto;
+      }
+      
+      .typing-indicator {
+        top: -30px;
+        font-size: 0.75rem;
+      }
+    }
+    
+    /* تأثيرات للشاشات الصغيرة جدًا */
+    @media (max-width: 480px) {
+      :root {
+        font-size: 14px;
+      }
+      
+      .message {
+        max-width: 95%;
+      }
+      
+      #send {
+        padding: 0 15px;
+        min-width: 50px;
+      }
+      
+      .typing-indicator {
+        top: -28px;
+        padding: 6px 10px;
+      }
     }
   </style>
 </head>
 <body>
 
+  <header>
+    <div class="logo">
+      <i class="fas fa-code"></i>
+      <span>عصابة المبرمجين</span>
+    </div>
+    <div class="online-count" id="online-count">
+      <i class="fas fa-users"></i>
+      <span id="online-number">0</span>
+    </div>
+  </header>
+  
   <div id="chat"></div>
-
+  
   <div id="controls">
-    <input type="text" id="name" placeholder="اسمك">
-    <input type="text" id="message" placeholder="اكتب رسالة...">
-    <button id="send">أرسل</button>
+    <div class="typing-indicator" id="typing-indicator">
+      <div class="dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <span id="typing-text">يكتب الآن...</span>
+    </div>
+    <input type="text" id="message" placeholder="اكتب رسالة..." autocomplete="off">
+    <button id="send">
+      <i class="fas fa-paper-plane"></i>
+      <span class="desktop-text">إرسال</span>
+    </button>
+  </div>
+  
+  <div id="name-form">
+    <div class="form-container">
+      <h2>
+        <i class="fas fa-user-ninja"></i>
+        <span>تعريف العضو</span>
+      </h2>
+      <input type="text" id="name" placeholder="اسمك في الدردشة" autocomplete="off" autofocus>
+      <button id="save-name">
+        <i class="fas fa-sign-in-alt"></i>
+        <span>الدخول للدردشة</span>
+      </button>
+    </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+    import { getDatabase, ref, push, onChildAdded, query, orderByChild, endAt, remove, onValue, onDisconnect, serverTimestamp, set } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCPaUeP9Xuc1UyjnQ5Kg3tGu6Gkm_peJ1U",
@@ -80,32 +427,188 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const messagesRef = ref(db, "messages");
+    const onlineUsersRef = ref(db, "onlineUsers");
+    const typingRef = ref(db, "typing");
 
-    const nameInput = document.getElementById("name");
+    // عناصر الواجهة
+    const chat = document.getElementById("chat");
     const messageInput = document.getElementById("message");
     const sendBtn = document.getElementById("send");
-    const chat = document.getElementById("chat");
+    const nameForm = document.getElementById("name-form");
+    const nameInput = document.getElementById("name");
+    const saveNameBtn = document.getElementById("save-name");
+    const typingIndicator = document.getElementById("typing-indicator");
+    const typingText = document.getElementById("typing-text");
+    const onlineCountElement = document.getElementById("online-number");
 
-    sendBtn.addEventListener("click", () => {
-      const name = nameInput.value.trim() || "مجهول";
-      const text = messageInput.value.trim();
-      if (text !== "") {
-        push(messagesRef, {
-          name: name,
-          text: text,
-          timestamp: Date.now()
-        });
-        messageInput.value = "";
+    // متغيرات التطبيق
+    let username = localStorage.getItem("username");
+    let userId = Math.random().toString(36).substring(2, 15);
+    let isTyping = false;
+    let lastTypingTime = 0;
+    let typingTimeout;
+
+    // تحقق من وجود اسم محفوظ
+    if (username) {
+      nameForm.classList.add("hidden");
+      messageInput.focus();
+      updateOnlineStatus();
+    }
+
+    // حفظ الاسم
+    saveNameBtn.addEventListener("click", () => {
+      const name = nameInput.value.trim();
+      if (name) {
+        username = name;
+        localStorage.setItem("username", name);
+        nameForm.classList.add("hidden");
+        messageInput.focus();
+        updateOnlineStatus();
       }
     });
 
+    // إرسال الرسالة
+    function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text || !username) return;
+
+      push(messagesRef, {
+        name: username,
+        text: text,
+        timestamp: Date.now(),
+        userId: userId
+      });
+
+      messageInput.value = "";
+      stopTyping();
+    }
+
+    // إرسال بالضغط على Enter
+    messageInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
+
+    // إدارة الكتابة
+    messageInput.addEventListener("input", () => {
+      updateTyping();
+    });
+
+    function updateTyping() {
+      if (!isTyping) {
+        isTyping = true;
+        set(ref(db, `typing/${userId}`), {
+          name: username,
+          timestamp: serverTimestamp()
+        });
+      }
+      
+      lastTypingTime = Date.now();
+      
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+      }
+      
+      typingTimeout = setTimeout(() => {
+        if (Date.now() - lastTypingTime > 2000) {
+          stopTyping();
+        }
+      }, 2000);
+    }
+
+    function stopTyping() {
+      if (isTyping) {
+        isTyping = false;
+        remove(ref(db, `typing/${userId}`));
+      }
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+
+    // عرض الرسائل الجديدة
     onChildAdded(messagesRef, (snapshot) => {
       const msg = snapshot.val();
-      const msgDiv = document.createElement("div");
-      msgDiv.innerHTML = `<span class="name">${msg.name}:</span> ${msg.text}`;
-      chat.appendChild(msgDiv);
+      const isCurrentUser = msg.userId === userId;
+      
+      const msgElement = document.createElement("div");
+      msgElement.classList.add("message");
+      if (isCurrentUser) msgElement.classList.add("sent");
+      
+      const time = new Date(msg.timestamp);
+      const timeString = time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      
+      msgElement.innerHTML = `
+        <div class="name">
+          <i class="fas fa-user${isCurrentUser ? '' : '-alt'}"></i>
+          ${msg.name}
+        </div>
+        <div class="text">${msg.text}</div>
+        <div class="time">
+          <i class="far fa-clock"></i>
+          ${timeString}
+        </div>
+      `;
+      
+      chat.appendChild(msgElement);
       chat.scrollTop = chat.scrollHeight;
     });
+
+    // عرض من يكتب الآن
+    onValue(typingRef, (snapshot) => {
+      const typingUsers = snapshot.val() || {};
+      const typingUsersCount = Object.keys(typingUsers).length;
+      
+      if (typingUsersCount > 0) {
+        const names = Object.values(typingUsers).map(user => user.name);
+        typingText.textContent = 
+          `${names.join('، ')} ${names.length > 1 ? 'يكتبون' : 'يكتب الآن'}...`;
+        typingIndicator.classList.add('visible');
+      } else {
+        typingIndicator.classList.remove('visible');
+      }
+    });
+
+    // إدارة المستخدمين المتصلين
+    function updateOnlineStatus() {
+      const userRef = ref(db, `onlineUsers/${userId}`);
+      
+      set(userRef, {
+        name: username,
+        lastActive: serverTimestamp()
+      });
+      
+      onDisconnect(userRef).remove();
+      
+      // حساب عدد المتصلين
+      onValue(onlineUsersRef, (snapshot) => {
+        const users = snapshot.val() || {};
+        const onlineCount = Object.keys(users).length;
+        onlineCountElement.textContent = onlineCount;
+      });
+    }
+
+    // دالة لحذف الرسائل القديمة
+    function deleteOldMessages() {
+      const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+      const oldMessagesQuery = query(
+        messagesRef,
+        orderByChild('timestamp'),
+        endAt(oneWeekAgo)
+      );
+
+      onValue(oldMessagesQuery, (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          remove(childSnapshot.ref);
+        });
+      });
+    }
+
+    // تشغيل دالة الحذف كل ساعة
+    setInterval(deleteOldMessages, 60 * 60 * 1000);
+    
+    // تشغيلها مرة عند التحميل
+    deleteOldMessages();
   </script>
 
 </body>
