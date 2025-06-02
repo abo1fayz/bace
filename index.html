@@ -1,944 +1,155 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>عصابة المبرمجين | دردشة تقنية متطورة</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>عصابة المبرمجين | دردشة تقنية</title>
   <style>
-    :root {
-      --primary: #0ea5e9;
-      --primary-dark: #0284c7;
-      --dark: #0f172a;
-      --darker: #020617;
-      --dark-light: #1e293b;
-      --gray: #334155;
-      --light-gray: #64748b;
-      --light: #f8fafc;
-      --code-bg: #282c34;
-      --mention-bg: rgba(14, 165, 233, 0.2);
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-    }
-
-    * {
-      box-sizing: border-box;
+    body {
+      background-color: #121212;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
       padding: 0;
-    }
-
-    body {
-      font-family: 'Tajawal', sans-serif;
-      background: var(--dark);
-      color: var(--light);
-      line-height: 1.6;
-    }
-
-    .container {
-      display: flex;
-      min-height: 100vh;
-    }
-
-    /* Sidebar Styles */
-    .sidebar {
-      width: 300px;
-      background: var(--darker);
-      border-left: 1px solid var(--gray);
-      padding: 20px;
-      overflow-y: auto;
-      transition: all 0.3s ease;
-    }
-
-    .sidebar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid var(--gray);
-    }
-
-    .sidebar-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .room-list {
-      margin-bottom: 30px;
-    }
-
-    .room-item {
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 5px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .room-item:hover {
-      background: var(--gray);
-    }
-
-    .room-item.active {
-      background: var(--primary);
-      color: white;
-    }
-
-    .room-item i {
-      font-size: 0.9rem;
-    }
-
-    .user-list {
-      margin-top: 20px;
-    }
-
-    .user-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 10px;
-      border-radius: 8px;
-      margin-bottom: 5px;
-    }
-
-    .user-item:hover {
-      background: var(--gray);
-    }
-
-    .user-status {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--success);
-    }
-
-    .user-status.offline {
-      background: var(--light-gray);
-    }
-
-    /* Main Chat Styles */
-    .main-chat {
-      flex: 1;
       display: flex;
       flex-direction: column;
-    }
-
-    .chat-header {
-      background: var(--dark-light);
-      padding: 15px 20px;
-      border-bottom: 1px solid var(--gray);
-      display: flex;
-      justify-content: space-between;
       align-items: center;
     }
 
-    .chat-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-    }
-
-    .chat-actions {
-      display: flex;
-      gap: 15px;
-    }
-
-    .chat-btn {
-      background: none;
-      border: none;
-      color: var(--light);
-      cursor: pointer;
-      font-size: 1rem;
-      transition: all 0.2s ease;
-    }
-
-    .chat-btn:hover {
-      color: var(--primary);
-    }
-
-    .messages-container {
-      flex: 1;
+    #nameContainer, #chatContainer {
       padding: 20px;
+      width: 90%;
+      max-width: 500px;
+    }
+
+    input, button {
+      padding: 10px;
+      margin-top: 10px;
+      width: 100%;
+      border: none;
+      border-radius: 5px;
+    }
+
+    input {
+      background-color: #333;
+      color: #fff;
+    }
+
+    button {
+      background-color: #1e88e5;
+      color: white;
+      cursor: pointer;
+    }
+
+    #messages {
+      max-height: 300px;
       overflow-y: auto;
-      background: var(--dark);
-      background-image: 
-        radial-gradient(circle at 10% 20%, rgba(14, 165, 233, 0.05) 0%, transparent 20%),
-        radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.05) 0%, transparent 20%);
+      border: 1px solid #444;
+      padding: 10px;
+      margin-top: 20px;
+      background-color: #1e1e1e;
+      border-radius: 5px;
     }
 
     .message {
-      margin-bottom: 20px;
-      animation: fadeIn 0.3s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .message-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 5px;
-    }
-
-    .message-sender {
-      font-weight: 700;
-      color: var(--primary);
-      margin-left: 10px;
-    }
-
-    .message-time {
-      font-size: 0.8rem;
-      color: var(--light-gray);
-    }
-
-    .message-mention {
-      background-color: var(--mention-bg);
-      padding: 0 4px;
-      border-radius: 4px;
-      font-weight: 500;
-    }
-
-    .message-content {
-      background: var(--dark-light);
-      padding: 12px 15px;
-      border-radius: 8px;
-      border-right: 3px solid var(--primary);
-      word-break: break-word;
-    }
-
-    .message-code {
-      background: var(--code-bg);
-      padding: 15px;
-      border-radius: 8px;
-      margin: 10px 0;
-      overflow-x: auto;
-      font-family: 'Courier New', monospace;
-      font-size: 0.9rem;
-    }
-
-    .message-actions {
-      display: flex;
-      gap: 15px;
-      margin-top: 8px;
-    }
-
-    .message-action {
-      background: none;
-      border: none;
-      color: var(--light-gray);
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .message-action:hover {
-      color: var(--primary);
-    }
-
-    .message-action.active {
-      color: var(--primary);
-    }
-
-    .typing-indicator {
-      color: var(--light-gray);
-      font-style: italic;
-      margin: 10px 0;
-      height: 20px;
-    }
-
-    /* Input Area Styles */
-    .input-area {
-      background: var(--dark-light);
-      padding: 15px;
-      border-top: 1px solid var(--gray);
-    }
-
-    .message-input {
-      width: 100%;
-      background: var(--gray);
-      border: none;
-      border-radius: 8px;
-      padding: 12px 15px;
-      color: var(--light);
-      font-family: 'Tajawal', sans-serif;
-      resize: none;
-      min-height: 60px;
-      max-height: 150px;
       margin-bottom: 10px;
-    }
-
-    .message-input:focus {
-      outline: none;
-      box-shadow: 0 0 0 2px var(--primary);
-    }
-
-    .input-actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .send-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 20px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .send-btn:hover {
-      background: var(--primary-dark);
-    }
-
-    .formatting-tools {
-      display: flex;
-      gap: 10px;
-    }
-
-    .format-btn {
-      background: var(--gray);
-      color: var(--light);
-      border: none;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .format-btn:hover {
-      background: var(--primary);
-    }
-
-    /* Login Styles */
-    .login-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background: var(--dark);
-    }
-
-    .login-box {
-      background: var(--dark-light);
-      padding: 30px;
-      border-radius: 15px;
-      width: 100%;
-      max-width: 500px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-      text-align: center;
-    }
-
-    .login-title {
-      font-size: 1.5rem;
-      margin-bottom: 20px;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .login-input {
-      width: 100%;
-      padding: 12px 15px;
-      background: var(--gray);
-      border: none;
-      border-radius: 8px;
-      color: var(--light);
-      margin-bottom: 15px;
-      font-size: 1rem;
-    }
-
-    .login-input:focus {
-      outline: none;
-      box-shadow: 0 0 0 2px var(--primary);
-    }
-
-    .login-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 25px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .login-btn:hover {
-      background: var(--primary-dark);
-    }
-
-    /* Responsive Styles */
-    @media (max-width: 768px) {
-      .container {
-        flex-direction: column;
-      }
-
-      .sidebar {
-        width: 100%;
-        border-left: none;
-        border-bottom: 1px solid var(--gray);
-        max-height: 200px;
-      }
-
-      .room-list {
-        display: flex;
-        overflow-x: auto;
-        gap: 10px;
-        padding-bottom: 10px;
-      }
-
-      .room-item {
-        white-space: nowrap;
-        margin-bottom: 0;
-      }
-
-      .user-list {
-        display: flex;
-        overflow-x: auto;
-        gap: 10px;
-        padding-bottom: 10px;
-      }
-
-      .user-item {
-        margin-bottom: 0;
-      }
-    }
-
-    /* Scrollbar Styles */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: var(--dark);
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--primary);
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--primary-dark);
+      border-bottom: 1px solid #333;
+      padding-bottom: 5px;
     }
   </style>
 </head>
 <body>
-  <div id="login-page" class="login-container">
-    <div class="login-box">
-      <h1 class="login-title"><i class="fas fa-code"></i> عصابة المبرمجين</h1>
-      <input type="text" id="username-input" class="login-input" placeholder="اسم المستخدم">
-      <select id="room-select" class="login-input">
-        <option value="general">عام</option>
-        <option value="javascript">جافاسكريبت</option>
-        <option value="python">بايثون</option>
-        <option value="frontend">واجهات الويب</option>
-        <option value="backend">قواعد البيانات</option>
-      </select>
-      <button id="login-btn" class="login-btn"><i class="fas fa-sign-in-alt"></i> دخول</button>
-    </div>
+  <div id="nameContainer">
+    <h2>اختر اسمك للدردشة</h2>
+    <input type="text" id="nameInput" placeholder="اكتب اسمك هنا" />
+    <button onclick="submitName()">دخول</button>
+    <p id="nameError" style="color:red;"></p>
   </div>
 
-  <div id="chat-page" class="container" style="display: none;">
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-title"><i class="fas fa-hashtag"></i> الغرف</div>
-      </div>
-      <div class="room-list" id="room-list">
-        <!-- Rooms will be added here dynamically -->
-      </div>
-      
-      <div class="sidebar-header">
-        <div class="sidebar-title"><i class="fas fa-users"></i> الأعضاء</div>
-        <span id="online-count">0</span>
-      </div>
-      <div class="user-list" id="user-list">
-        <!-- Users will be added here dynamically -->
-      </div>
-    </div>
-
-    <div class="main-chat">
-      <div class="chat-header">
-        <div class="chat-title" id="current-room">عام</div>
-        <div class="chat-actions">
-          <button class="chat-btn" id="refresh-btn"><i class="fas fa-sync-alt"></i></button>
-          <button class="chat-btn" id="logout-btn"><i class="fas fa-sign-out-alt"></i></button>
-        </div>
-      </div>
-
-      <div class="messages-container" id="messages-container">
-        <!-- Messages will be added here dynamically -->
-      </div>
-
-      <div class="input-area">
-        <div class="typing-indicator" id="typing-indicator"></div>
-        <textarea class="message-input" id="message-input" placeholder="اكتب رسالتك هنا..."></textarea>
-        <div class="input-actions">
-          <div class="formatting-tools">
-            <button class="format-btn" id="code-btn" title="إدراج كود"><i class="fas fa-code"></i></button>
-            <button class="format-btn" id="mention-btn" title="إشارة"><i class="fas fa-at"></i></button>
-          </div>
-          <button class="send-btn" id="send-btn"><i class="fas fa-paper-plane"></i> إرسال</button>
-        </div>
-      </div>
-    </div>
+  <div id="chatContainer" style="display:none;">
+    <h2>مرحباً، <span id="usernameDisplay"></span> 👋</h2>
+    <input type="text" id="messageInput" placeholder="اكتب رسالتك..." />
+    <button onclick="sendMessage()">إرسال</button>
+    <div id="messages"></div>
   </div>
 
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  
-  <!-- Highlight.js for code syntax highlighting -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-  
   <script>
-    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCPaUeP9Xuc1UyjnQ5Kg3tGu6Gkm_peJ1U",
       authDomain: "chat-375e0.firebaseapp.com",
       databaseURL: "https://chat-375e0-default-rtdb.firebaseio.com",
       projectId: "chat-375e0",
-      storageBucket: "chat-375e0.firebasestorage.app",
+      storageBucket: "chat-375e0.appspot.com",
       messagingSenderId: "452320470709",
-      appId: "1:452320470709:web:3d8a11a529773ed64300fc",
-      measurementId: "G-GVMT37SDGN"
+      appId: "1:452320470709:web:3d8a11a529773ed64300fc"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    const db = firebase.database();
 
-    // DOM elements
-    const loginPage = document.getElementById('login-page');
-    const chatPage = document.getElementById('chat-page');
-    const usernameInput = document.getElementById('username-input');
-    const roomSelect = document.getElementById('room-select');
-    const loginBtn = document.getElementById('login-btn');
-    const roomList = document.getElementById('room-list');
-    const userList = document.getElementById('user-list');
-    const onlineCount = document.getElementById('online-count');
-    const currentRoom = document.getElementById('current-room');
-    const messagesContainer = document.getElementById('messages-container');
-    const messageInput = document.getElementById('message-input');
-    const sendBtn = document.getElementById('send-btn');
-    const typingIndicator = document.getElementById('typing-indicator');
-    const refreshBtn = document.getElementById('refresh-btn');
-    const logoutBtn = document.getElementById('logout-btn');
-    const codeBtn = document.getElementById('code-btn');
-    const mentionBtn = document.getElementById('mention-btn');
+    let currentUser = "";
 
-    // App state
-    let currentUser = null;
-    let currentRoomId = 'general';
-    let typingTimeout = null;
-    let isTyping = false;
-
-    // Available rooms
-    const rooms = {
-      'general': 'عام',
-      'javascript': 'جافاسكريبت',
-      'python': 'بايثون',
-      'frontend': 'واجهات الويب',
-      'backend': 'قواعد البيانات'
+    window.onload = () => {
+      const savedUser = localStorage.getItem("username");
+      if (savedUser) {
+        currentUser = savedUser;
+        showChat();
+      } else {
+        document.getElementById("nameContainer").style.display = "block";
+      }
     };
 
-    // Login function
-    loginBtn.addEventListener('click', () => {
-      const username = usernameInput.value.trim();
-      const room = roomSelect.value;
-      
-      if (username) {
-        currentUser = {
-          name: username,
-          id: generateUserId(),
-          room: room
-        };
-        
-        currentRoomId = room;
-        
-        // Update UI
-        loginPage.style.display = 'none';
-        chatPage.style.display = 'flex';
-        currentRoom.textContent = rooms[room];
-        
-        // Initialize chat
-        initChat();
-        
-        // Set focus to message input
-        setTimeout(() => {
-          messageInput.focus();
-        }, 100);
+    function submitName() {
+      const name = document.getElementById("nameInput").value.trim();
+      const error = document.getElementById("nameError");
+      if (name === "") {
+        error.textContent = "يرجى إدخال اسم!";
+        return;
       }
-    });
 
-    // Generate a simple user ID
-    function generateUserId() {
-      return 'user-' + Math.random().toString(36).substr(2, 9);
-    }
-
-    // Initialize chat functionality
-    function initChat() {
-      // Load rooms
-      renderRooms();
-      
-      // Set up user presence
-      setupUserPresence();
-      
-      // Load messages for current room
-      loadMessages();
-      
-      // Set up event listeners
-      setupEventListeners();
-    }
-
-    // Render available rooms
-    function renderRooms() {
-      roomList.innerHTML = '';
-      
-      for (const [id, name] of Object.entries(rooms)) {
-        const roomItem = document.createElement('div');
-        roomItem.className = `room-item ${id === currentRoomId ? 'active' : ''}`;
-        roomItem.innerHTML = `<i class="fas fa-hashtag"></i> ${name}`;
-        
-        roomItem.addEventListener('click', () => {
-          switchRoom(id);
-        });
-        
-        roomList.appendChild(roomItem);
-      }
-    }
-
-    // Switch to a different room
-    function switchRoom(roomId) {
-      // Update current room
-      currentRoomId = roomId;
-      currentRoom.textContent = rooms[roomId];
-      
-      // Update active room in sidebar
-      const roomItems = document.querySelectorAll('.room-item');
-      roomItems.forEach(item => {
-        item.classList.remove('active');
-        if (item.textContent.includes(rooms[roomId])) {
-          item.classList.add('active');
+      db.ref("users/" + name).once("value", snapshot => {
+        if (snapshot.exists()) {
+          error.textContent = "❌ هذا الاسم مستخدم من قبل. اختر اسمًا آخر.";
+        } else {
+          db.ref("users/" + name).set({ joinedAt: Date.now() });
+          localStorage.setItem("username", name);
+          currentUser = name;
+          showChat();
         }
       });
-      
-      // Clear messages container
-      messagesContainer.innerHTML = '';
-      
-      // Update user's room in database
-      if (currentUser) {
-        database.ref(`users/${currentUser.id}`).update({
-          room: roomId
-        });
-      }
-      
-      // Load messages for new room
-      loadMessages();
     }
 
-    // Set up user presence in Firebase
-    function setupUserPresence() {
-      const userRef = database.ref(`users/${currentUser.id}`);
-      
-      // Set user as online
-      userRef.set({
-        name: currentUser.name,
-        room: currentUser.room,
-        online: true,
-        lastActive: firebase.database.ServerValue.TIMESTAMP
-      });
-      
-      // Remove user when they disconnect
-      userRef.onDisconnect().update({
-        online: false,
-        lastActive: firebase.database.ServerValue.TIMESTAMP
-      });
-      
-      // Listen for online users
-      database.ref('users').orderByChild('online').equalTo(true).on('value', (snapshot) => {
-        const users = snapshot.val() || {};
-        renderUserList(users);
-      });
+    function showChat() {
+      document.getElementById("nameContainer").style.display = "none";
+      document.getElementById("chatContainer").style.display = "block";
+      document.getElementById("usernameDisplay").textContent = currentUser;
+      listenForMessages();
     }
 
-    // Render online users list
-    function renderUserList(users) {
-      userList.innerHTML = '';
-      let count = 0;
-      
-      for (const [userId, userData] of Object.entries(users)) {
-        if (userData.online) {
-          count++;
-          const userItem = document.createElement('div');
-          userItem.className = 'user-item';
-          userItem.innerHTML = `
-            <div class="user-status ${userData.room === currentRoomId ? '' : 'offline'}"></div>
-            <span>${userData.name}</span>
-            ${userData.room === currentRoomId ? `<small>(${rooms[userData.room]})</small>` : ''}
-          `;
-          
-          userList.appendChild(userItem);
-        }
-      }
-      
-      onlineCount.textContent = count;
-    }
-
-    // Load messages for current room
-    function loadMessages() {
-      messagesContainer.innerHTML = '';
-      
-      database.ref(`messages/${currentRoomId}`).limitToLast(50).on('child_added', (snapshot) => {
-        const message = snapshot.val();
-        renderMessage(message);
-        scrollToBottom();
-      });
-    }
-
-    // Render a single message
-    function renderMessage(message) {
-      const messageDiv = document.createElement('div');
-      messageDiv.className = 'message';
-      
-      // Process mentions
-      let content = message.text;
-      if (content.includes('@')) {
-        content = content.replace(/@(\w+)/g, '<span class="message-mention">@$1</span>');
-      }
-      
-      // Check for code blocks
-      if (content.includes('```')) {
-        const parts = content.split('```');
-        let processedContent = '';
-        
-        for (let i = 0; i < parts.length; i++) {
-          if (i % 2 === 1) {
-            // This is a code block
-            processedContent += `<pre class="message-code"><code>${parts[i]}</code></pre>`;
-          } else {
-            processedContent += parts[i];
-          }
-        }
-        
-        content = processedContent;
-      }
-      
-      messageDiv.innerHTML = `
-        <div class="message-header">
-          <span class="message-sender">${message.name}</span>
-          <span class="message-time">${formatTime(message.timestamp)}</span>
-        </div>
-        <div class="message-content">${content}</div>
-        <div class="message-actions">
-          <button class="message-action" data-message-id="${message.id}"><i class="far fa-thumbs-up"></i> 0</button>
-          <button class="message-action" data-message-id="${message.id}"><i class="far fa-laugh"></i> 0</button>
-          <button class="message-action" data-message-id="${message.id}"><i class="fas fa-code"></i> 0</button>
-        </div>
-      `;
-      
-      messagesContainer.appendChild(messageDiv);
-      
-      // Apply syntax highlighting to code blocks
-      document.querySelectorAll('pre code').forEach((block) => {
-        hljs.highlightElement(block);
-      });
-    }
-
-    // Format timestamp
-    function formatTime(timestamp) {
-      if (!timestamp) return '';
-      
-      const date = new Date(timestamp);
-      return date.toLocaleTimeString('ar-EG', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
-
-    // Set up event listeners
-    function setupEventListeners() {
-      // Send message on button click
-      sendBtn.addEventListener('click', sendMessage);
-      
-      // Send message on Enter key (but allow Shift+Enter for new lines)
-      messageInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          sendMessage();
-        }
-      });
-      
-      // Typing indicator
-      messageInput.addEventListener('input', () => {
-        updateTypingStatus(true);
-        
-        // Clear previous timeout
-        if (typingTimeout) {
-          clearTimeout(typingTimeout);
-        }
-        
-        // Set timeout to stop typing indicator after 2 seconds
-        typingTimeout = setTimeout(() => {
-          updateTypingStatus(false);
-        }, 2000);
-      });
-      
-      // Logout button
-      logoutBtn.addEventListener('click', () => {
-        // Remove user from database
-        database.ref(`users/${currentUser.id}`).update({
-          online: false,
-          lastActive: firebase.database.ServerValue.TIMESTAMP
-        });
-        
-        // Reset UI
-        chatPage.style.display = 'none';
-        loginPage.style.display = 'flex';
-        usernameInput.value = '';
-        messagesContainer.innerHTML = '';
-        
-        // Reset state
-        currentUser = null;
-      });
-      
-      // Refresh button
-      refreshBtn.addEventListener('click', () => {
-        messagesContainer.innerHTML = '';
-        loadMessages();
-      });
-      
-      // Code button
-      codeBtn.addEventListener('click', () => {
-        const currentText = messageInput.value;
-        const selectionStart = messageInput.selectionStart;
-        const selectionEnd = messageInput.selectionEnd;
-        
-        const beforeText = currentText.substring(0, selectionStart);
-        const selectedText = currentText.substring(selectionStart, selectionEnd);
-        const afterText = currentText.substring(selectionEnd);
-        
-        messageInput.value = `${beforeText}\`\`\`\n${selectedText}\n\`\`\`${afterText}`;
-        messageInput.focus();
-        messageInput.selectionStart = selectionStart + 3;
-        messageInput.selectionEnd = selectionEnd + 3;
-      });
-      
-      // Mention button
-      mentionBtn.addEventListener('click', () => {
-        const currentText = messageInput.value;
-        const cursorPos = messageInput.selectionStart;
-        
-        messageInput.value = `${currentText.substring(0, cursorPos)}@${currentText.substring(cursorPos)}`;
-        messageInput.focus();
-        messageInput.selectionStart = cursorPos + 1;
-        messageInput.selectionEnd = cursorPos + 1;
-      });
-    }
-
-    // Send a new message
     function sendMessage() {
-      const text = messageInput.value.trim();
-      
-      if (text && currentUser) {
-        const newMessageRef = database.ref(`messages/${currentRoomId}`).push();
-        const timestamp = Date.now();
-        
-        newMessageRef.set({
-          id: newMessageRef.key,
-          name: currentUser.name,
-          text: text,
-          timestamp: timestamp
+      const msg = document.getElementById("messageInput").value.trim();
+      if (msg !== "") {
+        db.ref("messages").push({
+          user: currentUser,
+          text: msg,
+          timestamp: Date.now()
         });
-        
-        // Clear input
-        messageInput.value = '';
-        
-        // Update typing status
-        updateTypingStatus(false);
-        
-        // Scroll to bottom
-        scrollToBottom();
+        document.getElementById("messageInput").value = "";
       }
     }
 
-    // Update typing status in Firebase
-    function updateTypingStatus(typing) {
-      if (isTyping !== typing && currentUser) {
-        isTyping = typing;
-        
-        if (typing) {
-          database.ref(`typing/${currentRoomId}/${currentUser.id}`).set({
-            name: currentUser.name
-          });
-        } else {
-          database.ref(`typing/${currentRoomId}/${currentUser.id}`).remove();
-        }
-      }
+    function listenForMessages() {
+      db.ref("messages").on("child_added", snapshot => {
+        const msg = snapshot.val();
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add("message");
+        msgDiv.innerHTML = `<strong>${msg.user}:</strong> ${msg.text}`;
+        document.getElementById("messages").appendChild(msgDiv);
+        document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+      });
     }
-
-    // Listen for typing indicators
-    database.ref(`typing/${currentRoomId}`).on('value', (snapshot) => {
-      const typingUsers = snapshot.val() || {};
-      const typingUserNames = Object.values(typingUsers)
-        .filter(user => user.name !== currentUser.name)
-        .map(user => user.name);
-      
-      if (typingUserNames.length > 0) {
-        if (typingUserNames.length === 1) {
-          typingIndicator.textContent = `${typingUserNames[0]} يكتب الآن...`;
-        } else if (typingUserNames.length === 2) {
-          typingIndicator.textContent = `${typingUserNames[0]} و ${typingUserNames[1]} يكتبان الآن...`;
-        } else {
-          typingIndicator.textContent = `${typingUserNames[0]} و ${typingUserNames.length - 1} آخرين يكتبون الآن...`;
-        }
-        
-        typingIndicator.style.display = 'block';
-      } else {
-        typingIndicator.style.display = 'none';
-      }
-    });
-
-    // Scroll to bottom of messages
-    function scrollToBottom() {
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-
-    // Initialize highlight.js
-    hljs.highlightAll();
   </script>
 </body>
 </html>
