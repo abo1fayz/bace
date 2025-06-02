@@ -1,81 +1,365 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>عصابة المبرمجين | دردشة تقنية</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body {
-      background-color: #121212;
-      color: #fff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    :root {
+      --primary: #4361ee;
+      --secondary: #3a0ca3;
+      --dark: #1a1a2e;
+      --darker: #16213e;
+      --light: #f8f9fa;
+      --success: #4cc9f0;
+      --warning: #f8961e;
+      --danger: #ef233c;
+      --online: #2ecc71;
+      --offline: #e74c3c;
+    }
+
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--dark), var(--darker));
+      color: var(--light);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 800px;
+      background: rgba(26, 26, 46, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
       display: flex;
       flex-direction: column;
+      height: 90vh;
+    }
+
+    .header {
+      background: var(--primary);
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
       align-items: center;
     }
 
-    #nameContainer, #chatContainer {
-      padding: 20px;
-      width: 90%;
-      max-width: 500px;
+    .logo {
+      font-weight: 700;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
-    input, button {
-      padding: 10px;
-      margin-top: 10px;
-      width: 100%;
-      border: none;
-      border-radius: 5px;
+    .logo i {
+      font-size: 1.8rem;
+    }
+
+    .online-count {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .online-count .indicator {
+      width: 10px;
+      height: 10px;
+      background: var(--online);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    .auth-container, .chat-container {
+      padding: 30px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-container {
+      display: none;
+    }
+
+    .title {
+      text-align: center;
+      margin-bottom: 30px;
+      color: var(--success);
+    }
+
+    .title h2 {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+    }
+
+    .title p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 1rem;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
     }
 
     input {
-      background-color: #333;
-      color: #fff;
-    }
-
-    button {
-      background-color: #1e88e5;
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
       color: white;
-      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.3s;
     }
 
-    #messages {
-      max-height: 300px;
+    input:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary);
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn:hover {
+      background: var(--secondary);
+      transform: translateY(-2px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .error-message {
+      color: var(--danger);
+      text-align: center;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    .chat-area {
+      flex: 1;
       overflow-y: auto;
-      border: 1px solid #444;
-      padding: 10px;
-      margin-top: 20px;
-      background-color: #1e1e1e;
-      border-radius: 5px;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
 
     .message {
+      padding: 12px 15px;
+      border-radius: 10px;
+      max-width: 80%;
+      position: relative;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .received {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.1);
+      border-bottom-left-radius: 0;
+    }
+
+    .sent {
+      align-self: flex-end;
+      background: var(--primary);
+      border-bottom-right-radius: 0;
+    }
+
+    .message .sender {
+      font-weight: 700;
+      margin-bottom: 5px;
+      font-size: 0.9rem;
+    }
+
+    .message .text {
+      word-wrap: break-word;
+    }
+
+    .message .time {
+      font-size: 0.7rem;
+      opacity: 0.7;
+      text-align: right;
+      margin-top: 5px;
+    }
+
+    .typing-indicator {
+      display: none;
+      align-self: flex-start;
+      padding: 10px 15px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
       margin-bottom: 10px;
-      border-bottom: 1px solid #333;
-      padding-bottom: 5px;
+    }
+
+    .typing-indicator span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      margin-right: 3px;
+      animation: typing 1.4s infinite both;
+    }
+
+    .typing-indicator span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
+    }
+
+    .user-greeting {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+    }
+
+    .user-greeting span {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--secondary);
+    }
+
+    @media (max-width: 768px) {
+      .app-container {
+        height: 95vh;
+        border-radius: 15px;
+      }
+      
+      .auth-container, .chat-container {
+        padding: 20px;
+      }
+      
+      .title h2 {
+        font-size: 1.5rem;
+      }
     }
   </style>
 </head>
 <body>
-  <div id="nameContainer">
-    <h2>اختر اسمك للدردشة</h2>
-    <input type="text" id="nameInput" placeholder="اكتب اسمك هنا" />
-    <button onclick="submitName()">دخول</button>
-    <p id="nameError" style="color:red;"></p>
-  </div>
+  <div class="app-container">
+    <div class="header">
+      <div class="logo">
+        <i class="fas fa-code"></i>
+        <span>عصابة المبرمجين</span>
+      </div>
+      <div class="online-count">
+        <span class="indicator"></span>
+        <span id="onlineUsersCount">0</span> متصل
+      </div>
+    </div>
 
-  <div id="chatContainer" style="display:none;">
-    <h2>مرحباً، <span id="usernameDisplay"></span> 👋</h2>
-    <input type="text" id="messageInput" placeholder="اكتب رسالتك..." />
-    <button onclick="sendMessage()">إرسال</button>
-    <div id="messages"></div>
+    <div class="auth-container" id="authContainer">
+      <div class="title">
+        <h2>مرحباً بك في الدردشة التقنية</h2>
+        <p>اختر اسم مستخدم للانضمام إلى المحادثة</p>
+      </div>
+      <div class="input-group">
+        <label for="usernameInput">اسم المستخدم</label>
+        <input type="text" id="usernameInput" placeholder="اكتب اسمك هنا...">
+      </div>
+      <button class="btn" onclick="joinChat()">
+        <i class="fas fa-sign-in-alt"></i>
+        دخول الدردشة
+      </button>
+      <div class="error-message" id="authError"></div>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+      <div class="user-greeting">
+        مرحباً <span id="displayUsername"></span> 👋
+      </div>
+      <div class="chat-area" id="chatArea"></div>
+      <div class="input-group">
+        <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." onkeypress="handleKeyPress(event)">
+      </div>
+      <button class="btn" onclick="sendMessage()">
+        <i class="fas fa-paper-plane"></i>
+        إرسال
+      </button>
+    </div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script>
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCPaUeP9Xuc1UyjnQ5Kg3tGu6Gkm_peJ1U",
       authDomain: "chat-375e0.firebaseapp.com",
@@ -86,70 +370,162 @@
       appId: "1:452320470709:web:3d8a11a529773ed64300fc"
     };
 
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const database = firebase.database();
 
-    let currentUser = "";
+    // Global variables
+    let currentUser = null;
+    let userRef = null;
+    let connectedRef = null;
+    let usersRef = null;
 
-    window.onload = () => {
-      const savedUser = localStorage.getItem("username");
+    // Initialize the app
+    function init() {
+      // Check if user already logged in
+      const savedUser = localStorage.getItem('chatUsername');
       if (savedUser) {
-        currentUser = savedUser;
-        showChat();
-      } else {
-        document.getElementById("nameContainer").style.display = "block";
+        joinChat(savedUser);
       }
-    };
+      
+      // Set up online status tracking
+      setupOnlineStatus();
+    }
 
-    function submitName() {
-      const name = document.getElementById("nameInput").value.trim();
-      const error = document.getElementById("nameError");
-      if (name === "") {
-        error.textContent = "يرجى إدخال اسم!";
+    // Join chat function
+    function joinChat(username = null) {
+      const usernameInput = username || document.getElementById('usernameInput').value.trim();
+      const authError = document.getElementById('authError');
+      
+      // Validate username
+      if (!usernameInput) {
+        authError.textContent = 'يجب إدخال اسم المستخدم';
         return;
       }
-
-      db.ref("users/" + name).once("value", snapshot => {
-        if (snapshot.exists()) {
-          error.textContent = "❌ هذا الاسم مستخدم من قبل. اختر اسمًا آخر.";
+      
+      if (usernameInput.length < 3 || usernameInput.length > 15) {
+        authError.textContent = 'يجب أن يكون اسم المستخدم بين 3 و15 حرفاً';
+        return;
+      }
+      
+      // Check if username is available
+      database.ref('users/' + usernameInput).once('value').then(snapshot => {
+        if (snapshot.exists() && snapshot.val().online) {
+          authError.textContent = 'اسم المستخدم هذا مستخدم بالفعل، يرجى اختيار اسم آخر';
         } else {
-          db.ref("users/" + name).set({ joinedAt: Date.now() });
-          localStorage.setItem("username", name);
-          currentUser = name;
-          showChat();
+          // Set user data
+          currentUser = usernameInput;
+          localStorage.setItem('chatUsername', currentUser);
+          
+          // Set user as online
+          userRef = database.ref('users/' + currentUser);
+          userRef.set({
+            name: currentUser,
+            online: true,
+            lastActive: Date.now()
+          });
+          
+          // Set up disconnect cleanup
+          userRef.onDisconnect().update({
+            online: false,
+            lastActive: Date.now()
+          });
+          
+          // Switch to chat view
+          showChatView();
         }
       });
     }
 
-    function showChat() {
-      document.getElementById("nameContainer").style.display = "none";
-      document.getElementById("chatContainer").style.display = "block";
-      document.getElementById("usernameDisplay").textContent = currentUser;
-      listenForMessages();
+    // Show chat view
+    function showChatView() {
+      document.getElementById('authContainer').style.display = 'none';
+      document.getElementById('chatContainer').style.display = 'flex';
+      document.getElementById('displayUsername').textContent = currentUser;
+      
+      // Focus on message input
+      setTimeout(() => {
+        document.getElementById('messageInput').focus();
+      }, 100);
+      
+      // Load previous messages
+      loadMessages();
     }
 
+    // Set up online status tracking
+    function setupOnlineStatus() {
+      connectedRef = database.ref('.info/connected');
+      usersRef = database.ref('users');
+      
+      // Update online users count
+      usersRef.on('value', snapshot => {
+        let onlineCount = 0;
+        snapshot.forEach(user => {
+          if (user.val().online) onlineCount++;
+        });
+        document.getElementById('onlineUsersCount').textContent = onlineCount;
+      });
+    }
+
+    // Send message function
     function sendMessage() {
-      const msg = document.getElementById("messageInput").value.trim();
-      if (msg !== "") {
-        db.ref("messages").push({
+      const messageInput = document.getElementById('messageInput');
+      const message = messageInput.value.trim();
+      
+      if (message && currentUser) {
+        // Push message to database
+        database.ref('messages').push({
           user: currentUser,
-          text: msg,
+          text: message,
           timestamp: Date.now()
         });
-        document.getElementById("messageInput").value = "";
+        
+        // Clear input
+        messageInput.value = '';
       }
     }
 
-    function listenForMessages() {
-      db.ref("messages").on("child_added", snapshot => {
-        const msg = snapshot.val();
-        const msgDiv = document.createElement("div");
-        msgDiv.classList.add("message");
-        msgDiv.innerHTML = `<strong>${msg.user}:</strong> ${msg.text}`;
-        document.getElementById("messages").appendChild(msgDiv);
-        document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+    // Handle Enter key press
+    function handleKeyPress(event) {
+      if (event.key === 'Enter') {
+        sendMessage();
+      }
+    }
+
+    // Load messages
+    function loadMessages() {
+      database.ref('messages').on('child_added', snapshot => {
+        const message = snapshot.val();
+        displayMessage(message);
       });
     }
+
+    // Display message in chat area
+    function displayMessage(message) {
+      const chatArea = document.getElementById('chatArea');
+      const isCurrentUser = message.user === currentUser;
+      
+      const messageElement = document.createElement('div');
+      messageElement.className = `message ${isCurrentUser ? 'sent' : 'received'}`;
+      
+      messageElement.innerHTML = `
+        <div class="sender">${message.user}</div>
+        <div class="text">${message.text}</div>
+        <div class="time">${formatTime(message.timestamp)}</div>
+      `;
+      
+      chatArea.appendChild(messageElement);
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    // Format timestamp
+    function formatTime(timestamp) {
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString('ar-AR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Initialize the app when window loads
+    window.onload = init;
   </script>
 </body>
 </html>
