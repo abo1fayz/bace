@@ -37,6 +37,42 @@
       padding: 20px;
     }
 
+    /* شاشة التحميل */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--darker);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      transition: opacity 0.5s ease;
+    }
+
+    .loader {
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    .loading-text {
+      color: white;
+      font-size: 1.2rem;
+      margin-top: 15px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
     .app-container {
       width: 100%;
       max-width: 800px;
@@ -48,6 +84,14 @@
       display: flex;
       flex-direction: column;
       height: 90vh;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease;
+    }
+
+    .app-container.show {
+      opacity: 1;
+      transform: translateY(0);
     }
 
     .header {
@@ -120,9 +164,6 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-    }
-
-    .chat-container {
       display: none;
     }
 
@@ -372,7 +413,14 @@
   </style>
 </head>
 <body>
-  <div class="app-container">
+  <!-- شاشة التحميل -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loader"></div>
+    <div class="loading-text">جاري التحميل...</div>
+  </div>
+
+  <!-- التطبيق الرئيسي -->
+  <div class="app-container" id="appContainer">
     <div class="header">
       <div class="logo">
         <i class="fas fa-code"></i>
@@ -446,10 +494,25 @@
 
     // Initialize the app
     function init() {
+      // إخفاء كل شيء حتى انتهاء التحميل
+      document.getElementById('authContainer').style.display = 'none';
+      document.getElementById('chatContainer').style.display = 'none';
+      
       // Check if user already logged in
       const savedUser = localStorage.getItem('chatUsername');
       if (savedUser) {
+        // إذا كان المستخدم مسجلاً، ننتقل مباشرة للدردشة
         joinChat(savedUser);
+      } else {
+        // إذا لم يكن مسجلاً، نعرض شاشة التسجيل بعد التحميل
+        setTimeout(() => {
+          document.getElementById('loadingScreen').style.opacity = '0';
+          setTimeout(() => {
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('appContainer').classList.add('show');
+            document.getElementById('authContainer').style.display = 'flex';
+          }, 500);
+        }, 1500);
       }
       
       // Set up online status tracking
@@ -472,9 +535,22 @@
         return;
       }
       
+      // إظهار شاشة التحميل أثناء عملية الدخول
+      document.getElementById('loadingScreen').style.display = 'flex';
+      document.getElementById('loadingScreen').style.opacity = '1';
+      document.getElementById('appContainer').classList.remove('show');
+      
       // Check if username is available
       database.ref('users/' + usernameInput).once('value').then(snapshot => {
         if (snapshot.exists() && snapshot.val().online) {
+          // إخفاء شاشة التحميل وإظهار خطأ
+          document.getElementById('loadingScreen').style.opacity = '0';
+          setTimeout(() => {
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('appContainer').classList.add('show');
+            document.getElementById('authContainer').style.display = 'flex';
+          }, 500);
+          
           authError.textContent = 'اسم المستخدم هذا مستخدم بالفعل، يرجى اختيار اسم آخر';
         } else {
           // Set user data
@@ -502,8 +578,15 @@
             lastActive: Date.now()
           });
           
-          // Switch to chat view
-          showChatView();
+          // إخفاء شاشة التحميل وإظهار الدردشة
+          setTimeout(() => {
+            document.getElementById('loadingScreen').style.opacity = '0';
+            setTimeout(() => {
+              document.getElementById('loadingScreen').style.display = 'none';
+              document.getElementById('appContainer').classList.add('show');
+              showChatView();
+            }, 500);
+          }, 1000);
         }
       });
     }
@@ -634,7 +717,13 @@
     }
 
     // Initialize the app when window loads
-    window.onload = init;
+    window.onload = function() {
+      // إظهار شاشة التحميل أولاً
+      document.getElementById('loadingScreen').style.display = 'flex';
+      
+      // تهيئة التطبيق بعد تحميل الصفحة بالكامل
+      setTimeout(init, 500);
+    };
   </script>
 </body>
 </html>
