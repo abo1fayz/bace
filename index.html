@@ -59,6 +59,7 @@
       flex-direction: column;
       scroll-behavior: smooth;
       background: var(--bg);
+      position: relative;
     }
     
     .message {
@@ -309,6 +310,25 @@
     .online-count i {
       color: var(--secondary);
     }
+
+    .loading-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(30, 30, 30, 0.8);
+      padding: 15px 25px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 10;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .loading-message.hidden {
+      display: none;
+    }
     
     /* تأثيرات للهواتف */
     @media (max-width: 768px) {
@@ -361,6 +381,11 @@
         top: -28px;
         padding: 6px 10px;
       }
+
+      .loading-message {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+      }
     }
   </style>
 </head>
@@ -409,6 +434,11 @@
     </div>
   </div>
 
+  <div class="loading-message" id="loading-message">
+    <i class="fas fa-spinner fa-spin"></i>
+    <span>جاري تحميل الرسائل...</span>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
     import { getDatabase, ref, push, onChildAdded, query, orderByChild, endAt, remove, onValue, onDisconnect, serverTimestamp, set } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
@@ -440,6 +470,7 @@
     const typingIndicator = document.getElementById("typing-indicator");
     const typingText = document.getElementById("typing-text");
     const onlineCountElement = document.getElementById("online-number");
+    const loadingMessage = document.getElementById("loading-message");
 
     // متغيرات التطبيق
     let username = localStorage.getItem("username");
@@ -447,12 +478,14 @@
     let isTyping = false;
     let lastTypingTime = 0;
     let typingTimeout;
+    let firstLoad = true;
 
     // تحقق من وجود اسم محفوظ
     if (username) {
       nameForm.classList.add("hidden");
       messageInput.focus();
       updateOnlineStatus();
+      showLoadingMessage();
     }
 
     // حفظ الاسم
@@ -464,8 +497,19 @@
         nameForm.classList.add("hidden");
         messageInput.focus();
         updateOnlineStatus();
+        showLoadingMessage();
       }
     });
+
+    function showLoadingMessage() {
+      loadingMessage.classList.remove("hidden");
+      setTimeout(() => {
+        if (firstLoad) {
+          loadingMessage.classList.add("hidden");
+          firstLoad = false;
+        }
+      }, 3000); // إخفاء رسالة التحميل بعد 3 ثواني كحد أقصى
+    }
 
     // إرسال الرسالة
     function sendMessage() {
@@ -528,6 +572,9 @@
 
     // عرض الرسائل الجديدة
     onChildAdded(messagesRef, (snapshot) => {
+      loadingMessage.classList.add("hidden");
+      firstLoad = false;
+      
       const msg = snapshot.val();
       const isCurrentUser = msg.userId === userId;
       
