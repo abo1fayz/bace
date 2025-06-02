@@ -17,6 +17,7 @@
       --danger: #ef233c;
       --online: #2ecc71;
       --offline: #e74c3c;
+      --admin: #f72585;
     }
 
     * {
@@ -70,6 +71,12 @@
       font-size: 1.8rem;
     }
 
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
     .online-count {
       background: rgba(0, 0, 0, 0.2);
       padding: 5px 15px;
@@ -86,6 +93,15 @@
       background: var(--online);
       border-radius: 50%;
       animation: pulse 2s infinite;
+    }
+
+    .admin-badge {
+      background: var(--admin);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      display: none;
     }
 
     @keyframes pulse {
@@ -218,10 +234,23 @@
       border-bottom-right-radius: 0;
     }
 
+    .admin-message {
+      border: 1px solid var(--admin);
+    }
+
     .message .sender {
       font-weight: 700;
       margin-bottom: 5px;
       font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .message .sender .admin-tag {
+      color: var(--admin);
+      font-size: 0.7rem;
+      margin-right: 5px;
     }
 
     .message .text {
@@ -233,6 +262,31 @@
       opacity: 0.7;
       text-align: right;
       margin-top: 5px;
+    }
+
+    .message-actions {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      display: none;
+    }
+
+    .message:hover .message-actions {
+      display: block;
+    }
+
+    .delete-btn {
+      background: var(--danger);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .typing-indicator {
@@ -319,9 +373,12 @@
         <i class="fas fa-code"></i>
         <span>عصابة المبرمجين</span>
       </div>
-      <div class="online-count">
-        <span class="indicator"></span>
-        <span id="onlineUsersCount">0</span> متصل
+      <div class="user-info">
+        <div class="online-count">
+          <span class="indicator"></span>
+          <span id="onlineUsersCount">0</span> متصل
+        </div>
+        <div class="admin-badge" id="adminBadge">مشرف</div>
       </div>
     </div>
 
@@ -379,6 +436,8 @@
     let userRef = null;
     let connectedRef = null;
     let usersRef = null;
+    let isAdmin = false;
+    const ADMIN_USERNAME = "GM-MOHAMED";
 
     // Initialize the app
     function init() {
@@ -417,12 +476,19 @@
           currentUser = usernameInput;
           localStorage.setItem('chatUsername', currentUser);
           
+          // Check if admin
+          isAdmin = currentUser === ADMIN_USERNAME;
+          if (isAdmin) {
+            document.getElementById('adminBadge').style.display = 'block';
+          }
+          
           // Set user as online
           userRef = database.ref('users/' + currentUser);
           userRef.set({
             name: currentUser,
             online: true,
-            lastActive: Date.now()
+            lastActive: Date.now(),
+            isAdmin: isAdmin
           });
           
           // Set up disconnect cleanup
@@ -477,7 +543,8 @@
         database.ref('messages').push({
           user: currentUser,
           text: message,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          isAdmin: isAdmin
         });
         
         // Clear input
@@ -496,26 +563,46 @@
     function loadMessages() {
       database.ref('messages').on('child_added', snapshot => {
         const message = snapshot.val();
-        displayMessage(message);
+        displayMessage(message, snapshot.key);
       });
     }
 
     // Display message in chat area
-    function displayMessage(message) {
+    function displayMessage(message, messageId) {
       const chatArea = document.getElementById('chatArea');
       const isCurrentUser = message.user === currentUser;
+      const isAdminMessage = message.user === ADMIN_USERNAME;
       
       const messageElement = document.createElement('div');
-      messageElement.className = `message ${isCurrentUser ? 'sent' : 'received'}`;
+      messageElement.className = `message ${isCurrentUser ? 'sent' : 'received'} ${isAdminMessage ? 'admin-message' : ''}`;
+      
+      // Admin tag for admin messages
+      const adminTag = isAdminMessage ? '<span class="admin-tag">(مشرف)</span>' : '';
       
       messageElement.innerHTML = `
-        <div class="sender">${message.user}</div>
+        <div class="sender">
+          <span>${message.user} ${adminTag}</span>
+          ${isAdmin ? `<div class="message-actions">
+            <button class="delete-btn" onclick="deleteMessage('${messageId}')">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>` : ''}
+        </div>
         <div class="text">${message.text}</div>
         <div class="time">${formatTime(message.timestamp)}</div>
       `;
       
       chatArea.appendChild(messageElement);
       chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    // Delete message function (only for admin)
+    function deleteMessage(messageId) {
+      if (currentUser === ADMIN_USERNAME) {
+        if (confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
+          database.ref('messages/' + messageId).remove();
+        }
+      }
     }
 
     // Format timestamp
