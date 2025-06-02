@@ -330,6 +330,55 @@
       display: none;
     }
     
+    .file-upload-btn {
+      padding: 0 15px;
+      background: #333;
+      border-radius: 25px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .file-upload-btn:hover {
+      background: #444;
+    }
+    
+    .file-info {
+      font-size: 0.8rem;
+      margin-top: 5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .file-message {
+      border-left: 3px solid var(--primary);
+      padding-right: 10px;
+    }
+    
+    .file-icon {
+      color: var(--primary);
+    }
+    
+    .progress-container {
+      width: 100%;
+      background: #333;
+      border-radius: 5px;
+      margin-top: 5px;
+      display: none;
+    }
+    
+    .progress-bar {
+      height: 5px;
+      background: var(--primary);
+      border-radius: 5px;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    
     /* تأثيرات للهواتف */
     @media (max-width: 768px) {
       .message {
@@ -360,6 +409,11 @@
         top: -30px;
         font-size: 0.75rem;
       }
+
+      .loading-message {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+      }
     }
     
     /* تأثيرات للشاشات الصغيرة جدًا */
@@ -383,8 +437,12 @@
       }
 
       .loading-message {
-        padding: 12px 20px;
-        font-size: 0.9rem;
+        padding: 10px 15px;
+        font-size: 0.8rem;
+      }
+      
+      .file-upload-btn {
+        padding: 0 12px;
       }
     }
   </style>
@@ -394,7 +452,7 @@
   <header>
     <div class="logo">
       <i class="fas fa-code"></i>
-      <span>فريق GM للبرمجة </span>
+      <span>فريق GM للبرمجة</span>
     </div>
     <div class="online-count" id="online-count">
       <i class="fas fa-users"></i>
@@ -413,11 +471,21 @@
       </div>
       <span id="typing-text">يكتب الآن...</span>
     </div>
+    
+    <label for="file-upload" class="file-upload-btn" title="إرسال ملف">
+      <i class="fas fa-paperclip"></i>
+      <input type="file" id="file-upload" style="display: none;">
+    </label>
+    
     <input type="text" id="message" placeholder="اكتب رسالة..." autocomplete="off">
     <button id="send">
       <i class="fas fa-paper-plane"></i>
       <span class="desktop-text">إرسال</span>
     </button>
+    
+    <div class="progress-container" id="progress-container">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
   </div>
   
   <div id="name-form">
@@ -441,7 +509,26 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, query, orderByChild, endAt, remove, onValue, onDisconnect, serverTimestamp, set } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+    import { 
+      getDatabase, 
+      ref, 
+      push, 
+      onChildAdded, 
+      query, 
+      orderByChild, 
+      endAt, 
+      remove, 
+      onValue, 
+      onDisconnect, 
+      serverTimestamp, 
+      set 
+    } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+    import { 
+      getStorage, 
+      ref as storageRef, 
+      uploadBytesResumable, 
+      getDownloadURL 
+    } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCPaUeP9Xuc1UyjnQ5Kg3tGu6Gkm_peJ1U",
@@ -456,6 +543,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+    const storage = getStorage(app);
     const messagesRef = ref(db, "messages");
     const onlineUsersRef = ref(db, "onlineUsers");
     const typingRef = ref(db, "typing");
@@ -471,6 +559,9 @@
     const typingText = document.getElementById("typing-text");
     const onlineCountElement = document.getElementById("online-number");
     const loadingMessage = document.getElementById("loading-message");
+    const fileUpload = document.getElementById("file-upload");
+    const progressContainer = document.getElementById("progress-container");
+    const progressBar = document.getElementById("progress-bar");
 
     // متغيرات التطبيق
     let username = localStorage.getItem("username");
@@ -479,6 +570,7 @@
     let lastTypingTime = 0;
     let typingTimeout;
     let firstLoad = true;
+    const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 
     // تحقق من وجود اسم محفوظ
     if (username) {
@@ -508,7 +600,7 @@
           loadingMessage.classList.add("hidden");
           firstLoad = false;
         }
-      }, 3000); // إخفاء رسالة التحميل بعد 3 ثواني كحد أقصى
+      }, 3000);
     }
 
     // إرسال الرسالة
@@ -570,6 +662,67 @@
 
     sendBtn.addEventListener("click", sendMessage);
 
+    // معالجة رفع الملفات
+    fileUpload.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // تحقق من حجم الملف (25MB كحد أقصى)
+      if (file.size > MAX_FILE_SIZE) {
+        alert(`حجم الملف كبير جداً. الحد الأقصى ${formatFileSize(MAX_FILE_SIZE)}`);
+        fileUpload.value = "";
+        return;
+      }
+
+      try {
+        // إظهار شريط التقدم
+        progressContainer.style.display = "block";
+        progressBar.style.width = "0%";
+        
+        const fileRef = storageRef(storage, `files/${userId}/${Date.now()}_${file.name}`);
+        const uploadTask = uploadBytesResumable(fileRef, file);
+
+        uploadTask.on("state_changed",
+          (snapshot) => {
+            // تحديث شريط التقدم
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            progressBar.style.width = `${progress}%`;
+          },
+          (error) => {
+            console.error("Error uploading file:", error);
+            alert("حدث خطأ أثناء رفع الملف");
+            progressContainer.style.display = "none";
+          },
+          async () => {
+            // اكتمال الرفع
+            const fileUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            
+            // إرسال رسالة تحتوي على الملف
+            push(messagesRef, {
+              name: username,
+              fileUrl: fileUrl,
+              fileName: file.name,
+              fileType: file.type,
+              fileSize: file.size,
+              timestamp: Date.now(),
+              userId: userId,
+              isFile: true
+            });
+
+            // إخفاء شريط التقدم وإعادة تعيين حقل الرفع
+            progressContainer.style.display = "none";
+            fileUpload.value = "";
+          }
+        );
+
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        alert("حدث خطأ أثناء رفع الملف");
+        progressContainer.style.display = "none";
+        fileUpload.value = "";
+      }
+    });
+
     // عرض الرسائل الجديدة
     onChildAdded(messagesRef, (snapshot) => {
       loadingMessage.classList.add("hidden");
@@ -585,12 +738,47 @@
       const time = new Date(msg.timestamp);
       const timeString = time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
       
+      let content = '';
+      
+      if (msg.isFile) {
+        // عرض الملفات
+        const fileType = msg.fileType.split('/')[0];
+        
+        if (fileType === 'image') {
+          content = `
+            <div class="text">
+              <img src="${msg.fileUrl}" alt="${msg.fileName}" style="max-width:100%; border-radius:8px;">
+              <div class="file-info">
+                <i class="fas fa-image file-icon"></i>
+                ${msg.fileName} (${formatFileSize(msg.fileSize)})
+              </div>
+            </div>
+          `;
+        } else {
+          content = `
+            <div class="text file-message">
+              <a href="${msg.fileUrl}" target="_blank" download="${msg.fileName}" style="color:inherit; text-decoration:none;">
+                <i class="fas ${getFileIcon(msg.fileType)} file-icon"></i>
+                ${msg.fileName}
+              </a>
+              <div class="file-info">
+                <i class="fas fa-download"></i>
+                انقر لتحميل الملف (${formatFileSize(msg.fileSize)})
+              </div>
+            </div>
+          `;
+        }
+      } else {
+        // الرسائل النصية العادية
+        content = `<div class="text">${msg.text}</div>`;
+      }
+      
       msgElement.innerHTML = `
         <div class="name">
           <i class="fas fa-user${isCurrentUser ? '' : '-alt'}"></i>
           ${msg.name}
         </div>
-        <div class="text">${msg.text}</div>
+        ${content}
         <div class="time">
           <i class="far fa-clock"></i>
           ${timeString}
@@ -633,6 +821,42 @@
         const onlineCount = Object.keys(users).length;
         onlineCountElement.textContent = onlineCount;
       });
+    }
+
+    // دوال مساعدة
+    function getFileIcon(fileType) {
+      const type = fileType?.split('/')[0];
+      const extension = fileType?.split('/')[1];
+      const icons = {
+        'image': 'fa-image',
+        'video': 'fa-video',
+        'audio': 'fa-music',
+        'application': {
+          'pdf': 'fa-file-pdf',
+          'msword': 'fa-file-word',
+          'vnd.openxmlformats-officedocument.wordprocessingml.document': 'fa-file-word',
+          'vnd.ms-excel': 'fa-file-excel',
+          'vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'fa-file-excel',
+          'vnd.ms-powerpoint': 'fa-file-powerpoint',
+          'vnd.openxmlformats-officedocument.presentationml.presentation': 'fa-file-powerpoint',
+          'zip': 'fa-file-archive',
+          'x-rar-compressed': 'fa-file-archive',
+          'x-7z-compressed': 'fa-file-archive'
+        },
+        'text': 'fa-file-alt'
+      };
+      
+      if (type === 'application' && icons.application[extension]) {
+        return icons.application[extension];
+      }
+      return icons[type] || 'fa-file';
+    }
+
+    function formatFileSize(bytes) {
+      if (!bytes) return '';
+      if (bytes < 1024) return bytes + ' بايت';
+      else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' كيلوبايت';
+      else return (bytes / 1048576).toFixed(1) + ' ميجابايت';
     }
 
     // دالة لحذف الرسائل القديمة
