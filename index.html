@@ -35,6 +35,7 @@
       justify-content: center;
       align-items: center;
       padding: 0;
+      overflow: hidden;
     }
 
     /* شاشة التحميل */
@@ -244,8 +245,18 @@
       font-size: 0.8rem;
     }
 
-    .chat-area {
+    .chat-area-wrapper {
       flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chat-area {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       overflow-y: auto;
       padding: 10px;
       background: rgba(0, 0, 0, 0.2);
@@ -371,53 +382,13 @@
       opacity: 1;
     }
 
-    .typing-indicator {
-      display: none;
-      align-self: flex-start;
-      padding: 8px 12px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      margin-bottom: 8px;
-      font-size: 0.8rem;
-    }
-
-    .typing-indicator span {
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.5);
-      border-radius: 50%;
-      margin-right: 3px;
-      animation: typing 1.4s infinite both;
-    }
-
-    .typing-indicator span:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-
-    .typing-indicator span:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-
-    @keyframes typing {
-      0%, 60%, 100% { transform: translateY(0); }
-      30% { transform: translateY(-3px); }
-    }
-
-    .user-greeting {
-      text-align: center;
-      margin-bottom: 15px;
-      font-size: 1rem;
-    }
-
-    .user-greeting span {
-      color: var(--success);
-      font-weight: 700;
+    .scroll-to-bottom:hover {
+      background: var(--secondary);
     }
 
     /* Scrollbar styling */
     ::-webkit-scrollbar {
-      width: 5px;
+      width: 6px;
     }
 
     ::-webkit-scrollbar-track {
@@ -519,7 +490,9 @@
       <div class="user-greeting">
         مرحباً <span id="displayUsername"></span> 👋
       </div>
-      <div class="chat-area" id="chatArea"></div>
+      <div class="chat-area-wrapper">
+        <div class="chat-area" id="chatArea"></div>
+      </div>
       <div class="scroll-to-bottom" id="scrollToBottom" onclick="scrollToBottom()">
         <i class="fas fa-arrow-down"></i>
       </div>
@@ -561,6 +534,7 @@
     let isAdmin = false;
     const ADMIN_USERNAME = "GM-MOHAMED";
     let autoScrollEnabled = true;
+    let isScrolling = false;
 
     // Initialize the app
     function init() {
@@ -666,8 +640,8 @@
       const chatArea = document.getElementById('chatArea');
       const scrollToBottomBtn = document.getElementById('scrollToBottom');
       
-      chatArea.addEventListener('scroll', () => {
-        // Show/hide scroll to bottom button
+      // Function to check scroll position
+      const checkScrollPosition = () => {
         const isNearBottom = chatArea.scrollHeight - chatArea.scrollTop - chatArea.clientHeight < 100;
         if (isNearBottom) {
           scrollToBottomBtn.classList.remove('visible');
@@ -675,6 +649,16 @@
         } else {
           scrollToBottomBtn.classList.add('visible');
           autoScrollEnabled = false;
+        }
+      };
+      
+      // Initial check
+      checkScrollPosition();
+      
+      // Event listener for scroll
+      chatArea.addEventListener('scroll', () => {
+        if (!isScrolling) {
+          checkScrollPosition();
         }
       });
       
@@ -685,17 +669,27 @@
           scrollToBottom();
         }, 300);
       });
+      
+      // Handle window resize (keyboard show/hide)
+      window.addEventListener('resize', () => {
+        checkScrollPosition();
+      });
     }
 
     // Scroll to bottom function
     function scrollToBottom() {
       const chatArea = document.getElementById('chatArea');
+      isScrolling = true;
       chatArea.scrollTo({
         top: chatArea.scrollHeight,
         behavior: 'smooth'
       });
-      autoScrollEnabled = true;
-      document.getElementById('scrollToBottom').classList.remove('visible');
+      
+      setTimeout(() => {
+        autoScrollEnabled = true;
+        document.getElementById('scrollToBottom').classList.remove('visible');
+        isScrolling = false;
+      }, 500);
     }
 
     // Set up online status tracking
@@ -729,9 +723,7 @@
         messageInput.focus();
         
         // Scroll to bottom after sending message
-        if (autoScrollEnabled) {
-          setTimeout(scrollToBottom, 100);
-        }
+        setTimeout(scrollToBottom, 100);
       }
     }
 
