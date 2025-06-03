@@ -84,19 +84,11 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: all 0.5s ease;
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-    }
-
-    .app-container.show {
-      opacity: 1;
-      transform: translateY(0);
     }
 
     .header {
@@ -356,6 +348,29 @@
       z-index: 5;
     }
 
+    .scroll-to-bottom {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: var(--primary);
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      z-index: 20;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .scroll-to-bottom.visible {
+      opacity: 1;
+    }
+
     .typing-indicator {
       display: none;
       align-self: flex-start;
@@ -451,6 +466,13 @@
       input, .btn {
         padding: 10px 12px;
       }
+      
+      .scroll-to-bottom {
+        bottom: 70px;
+        right: 15px;
+        width: 35px;
+        height: 35px;
+      }
     }
   </style>
 </head>
@@ -498,6 +520,9 @@
         مرحباً <span id="displayUsername"></span> 👋
       </div>
       <div class="chat-area" id="chatArea"></div>
+      <div class="scroll-to-bottom" id="scrollToBottom" onclick="scrollToBottom()">
+        <i class="fas fa-arrow-down"></i>
+      </div>
       <div class="input-container">
         <div class="input-group">
           <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." onkeypress="handleKeyPress(event)">
@@ -535,20 +560,17 @@
     let usersRef = null;
     let isAdmin = false;
     const ADMIN_USERNAME = "GM-MOHAMED";
+    let autoScrollEnabled = true;
 
     // Initialize the app
     function init() {
-      // إخفاء كل شيء حتى انتهاء التحميل
       document.getElementById('authContainer').style.display = 'none';
       document.getElementById('chatContainer').style.display = 'none';
       
-      // Check if user already logged in
       const savedUser = localStorage.getItem('chatUsername');
       if (savedUser) {
-        // إذا كان المستخدم مسجلاً، ننتقل مباشرة للدردشة
         joinChat(savedUser);
       } else {
-        // إذا لم يكن مسجلاً، نعرض شاشة التسجيل بعد التحميل
         setTimeout(() => {
           document.getElementById('loadingScreen').style.opacity = '0';
           setTimeout(() => {
@@ -559,7 +581,6 @@
         }, 1500);
       }
       
-      // Set up online status tracking
       setupOnlineStatus();
     }
 
@@ -568,7 +589,6 @@
       const usernameInput = username || document.getElementById('usernameInput').value.trim();
       const authError = document.getElementById('authError');
       
-      // Validate username
       if (!usernameInput) {
         authError.textContent = 'يجب إدخال اسم المستخدم';
         return;
@@ -579,15 +599,12 @@
         return;
       }
       
-      // إظهار شاشة التحميل أثناء عملية الدخول
       document.getElementById('loadingScreen').style.display = 'flex';
       document.getElementById('loadingScreen').style.opacity = '1';
       document.getElementById('appContainer').classList.remove('show');
       
-      // Check if username is available
       database.ref('users/' + usernameInput).once('value').then(snapshot => {
         if (snapshot.exists() && snapshot.val().online) {
-          // إخفاء شاشة التحميل وإظهار خطأ
           document.getElementById('loadingScreen').style.opacity = '0';
           setTimeout(() => {
             document.getElementById('loadingScreen').style.display = 'none';
@@ -597,17 +614,14 @@
           
           authError.textContent = 'اسم المستخدم هذا مستخدم بالفعل، يرجى اختيار اسم آخر';
         } else {
-          // Set user data
           currentUser = usernameInput;
           localStorage.setItem('chatUsername', currentUser);
           
-          // Check if admin
           isAdmin = currentUser === ADMIN_USERNAME;
           if (isAdmin) {
             document.getElementById('adminBadge').style.display = 'block';
           }
           
-          // Set user as online
           userRef = database.ref('users/' + currentUser);
           userRef.set({
             name: currentUser,
@@ -616,13 +630,11 @@
             isAdmin: isAdmin
           });
           
-          // Set up disconnect cleanup
           userRef.onDisconnect().update({
             online: false,
             lastActive: Date.now()
           });
           
-          // إخفاء شاشة التحميل وإظهار الدردشة
           setTimeout(() => {
             document.getElementById('loadingScreen').style.opacity = '0';
             setTimeout(() => {
@@ -641,33 +653,49 @@
       document.getElementById('chatContainer').style.display = 'flex';
       document.getElementById('displayUsername').textContent = currentUser;
       
-      // Focus on message input
       setTimeout(() => {
         document.getElementById('messageInput').focus();
       }, 100);
       
-      // Load previous messages
       loadMessages();
-      
-      // Scroll to bottom when keyboard appears
-      setupKeyboardHandling();
+      setupChatScroll();
     }
 
-    // Handle keyboard appearance on mobile
-    function setupKeyboardHandling() {
+    // Setup chat scroll behavior
+    function setupChatScroll() {
       const chatArea = document.getElementById('chatArea');
-      const messageInput = document.getElementById('messageInput');
+      const scrollToBottomBtn = document.getElementById('scrollToBottom');
       
+      chatArea.addEventListener('scroll', () => {
+        // Show/hide scroll to bottom button
+        const isNearBottom = chatArea.scrollHeight - chatArea.scrollTop - chatArea.clientHeight < 100;
+        if (isNearBottom) {
+          scrollToBottomBtn.classList.remove('visible');
+          autoScrollEnabled = true;
+        } else {
+          scrollToBottomBtn.classList.add('visible');
+          autoScrollEnabled = false;
+        }
+      });
+      
+      // Handle keyboard appearance
+      const messageInput = document.getElementById('messageInput');
       messageInput.addEventListener('focus', () => {
         setTimeout(() => {
-          chatArea.scrollTop = chatArea.scrollHeight;
+          scrollToBottom();
         }, 300);
       });
-      
-      // Handle window resize (keyboard show/hide)
-      window.addEventListener('resize', () => {
-        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    // Scroll to bottom function
+    function scrollToBottom() {
+      const chatArea = document.getElementById('chatArea');
+      chatArea.scrollTo({
+        top: chatArea.scrollHeight,
+        behavior: 'smooth'
       });
+      autoScrollEnabled = true;
+      document.getElementById('scrollToBottom').classList.remove('visible');
     }
 
     // Set up online status tracking
@@ -675,7 +703,6 @@
       connectedRef = database.ref('.info/connected');
       usersRef = database.ref('users');
       
-      // Update online users count
       usersRef.on('value', snapshot => {
         let onlineCount = 0;
         snapshot.forEach(user => {
@@ -691,7 +718,6 @@
       const message = messageInput.value.trim();
       
       if (message && currentUser) {
-        // Push message to database
         database.ref('messages').push({
           user: currentUser,
           text: message,
@@ -699,11 +725,13 @@
           isAdmin: isAdmin
         });
         
-        // Clear input
         messageInput.value = '';
-        
-        // Keep focus on input
         messageInput.focus();
+        
+        // Scroll to bottom after sending message
+        if (autoScrollEnabled) {
+          setTimeout(scrollToBottom, 100);
+        }
       }
     }
 
@@ -719,10 +747,13 @@
       database.ref('messages').on('child_added', snapshot => {
         const message = snapshot.val();
         displayMessage(message, snapshot.key);
-        scrollToBottom();
+        
+        // Auto-scroll to bottom when new message arrives if enabled
+        if (autoScrollEnabled) {
+          setTimeout(scrollToBottom, 100);
+        }
       });
 
-      // Listen for message removal
       database.ref('messages').on('child_removed', snapshot => {
         const messageId = snapshot.key;
         const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
@@ -733,12 +764,6 @@
           }, 300);
         }
       });
-    }
-    
-    // Scroll to bottom of chat
-    function scrollToBottom() {
-      const chatArea = document.getElementById('chatArea');
-      chatArea.scrollTop = chatArea.scrollHeight;
     }
 
     // Display message in chat area
@@ -751,7 +776,6 @@
       messageElement.className = `message ${isCurrentUser ? 'sent' : 'received'} ${isAdminMessage ? 'admin-message' : ''}`;
       messageElement.setAttribute('data-message-id', messageId);
       
-      // Admin tag for admin messages
       const adminTag = isAdminMessage ? '<span class="admin-tag">(مشرف)</span>' : '';
       
       messageElement.innerHTML = `
@@ -791,10 +815,7 @@
 
     // Initialize the app when window loads
     window.onload = function() {
-      // إظهار شاشة التحميل أولاً
       document.getElementById('loadingScreen').style.display = 'flex';
-      
-      // تهيئة التطبيق بعد تحميل الصفحة بالكامل
       setTimeout(init, 500);
     };
   </script>
