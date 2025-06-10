@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>عصابة المبرمجين | دردشة تقنية</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --secondary: #3a0ca3;
+      --dark: #1a1a2e;
+      --darker: #16213e;
+      --light: #f8f9fa;
+      --success: #4cc9f0;
+      --warning: #f8961e;
+      --danger: #ef233c;
+      --online: #2ecc71;
+      --offline: #e74c3c;
+      --admin: #f72585;
+      --typing-indicator: #3a0ca3;
+      --note-color: rgba(67, 97, 238, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--dark), var(--darker));
+      color: var(--light);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    /* شاشة التحميل المحسنة */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--darker);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      transition: opacity 0.5s ease;
+    }
+
+    .loader {
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      border-bottom-color: var(--success);
+      animation: spin 1.5s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    .loading-text {
+      color: white;
+      font-size: 1.2rem;
+      margin-top: 15px;
+      animation: fadeInOut 2s infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeInOut {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 800px;
+      background: rgba(26, 26, 46, 0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 0;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+    }
+
+    .app-container.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .header {
+      background: var(--primary);
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo i {
+      font-size: 1.5rem;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .online-count {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .online-count .indicator {
+      width: 8px;
+      height: 8px;
+      background: var(--online);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .admin-badge {
+      background: var(--admin);
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      display: none;
+    }
+
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.8rem;
+      color: var(--typing-indicator);
+      margin: 5px 15px;
+      height: 20px;
+      background: rgba(58, 12, 163, 0.1);
+      padding: 5px 10px;
+      border-radius: 15px;
+      width: fit-content;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 3px;
+    }
+
+    .typing-dots span {
+      width: 6px;
+      height: 6px;
+      background: var(--typing-indicator);
+      border-radius: 50%;
+      display: inline-block;
+      animation: bounce 1.4s infinite ease-in-out;
+    }
+
+    .typing-dots span:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .typing-dots span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dots span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-5px); }
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(10px); }
+    }
+
+    .auth-container, .chat-container {
+      padding: 15px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      display: none;
+    }
+
+    .title {
+      text-align: center;
+      margin-bottom: 20px;
+      color: var(--success);
+    }
+
+    .title h2 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+
+    .title p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .user-greeting {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      text-align: center;
+      font-weight: 500;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+      position: relative;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px 15px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: white;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:hover {
+      background: var(--secondary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      border-radius: 100%;
+      transform: scale(1, 1) translate(-50%, -50%);
+      transform-origin: 50% 50%;
+    }
+
+    .btn:focus:not(:active)::after {
+      animation: ripple 0.6s ease-out;
+    }
+
+    @keyframes ripple {
+      0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+      }
+      100% {
+        transform: scale(20, 20);
+        opacity: 0;
+      }
+    }
+
+    .error-message {
+      color: var(--danger);
+      text-align: center;
+      margin-top: 8px;
+      font-size: 0.8rem;
+      min-height: 16px;
+      animation: shake 0.5s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-5px); }
+      40%, 80% { transform: translateX(5px); }
+    }
+
+    .chat-area-wrapper {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chat-area {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow-y: auto;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 70px;
+    }
+
+    .message {
+      padding: 10px 12px;
+      border-radius: 8px;
+      max-width: 85%;
+      position: relative;
+      animation: fadeIn 0.3s ease;
+      word-break: break-word;
+      transition: all 0.2s ease;
+    }
+
+    .message:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .received {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.1);
+      border-bottom-left-radius: 0;
+    }
+
+    .sent {
+      align-self: flex-end;
+      background: var(--primary);
+      border-bottom-right-radius: 0;
+    }
+
+    .admin-message {
+      border: 1px solid var(--admin);
+      background: rgba(247, 37, 133, 0.1);
+    }
+
+    .message .sender {
+      font-weight: 700;
+      margin-bottom: 4px;
+      font-size: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .message .sender .admin-tag {
+      color: var(--admin);
+      font-size: 0.6rem;
+      margin-right: 4px;
+    }
+
+    .message .text {
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .message .time {
+      font-size: 0.6rem;
+      opacity: 0.7;
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    .message-actions {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      display: none;
+    }
+
+    .message:hover .message-actions {
+      display: block;
+    }
+
+    .delete-btn {
+      background: var(--danger);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 9px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .delete-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .input-container {
+      position: sticky;
+      bottom: 0;
+      background: var(--darker);
+      padding: 10px 15px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 5;
+    }
+
+    .scroll-to-bottom {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: var(--primary);
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      z-index: 20;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.2s;
+    }
+
+    .scroll-to-bottom.visible {
+      opacity: 1;
+    }
+
+    .scroll-to-bottom:hover {
+      background: var(--secondary);
+      transform: scale(1.1);
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+      z-index: 100;
+      animation: slideIn 0.3s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(-50%) translateY(-50px); opacity: 0; }
+      to { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+
+    /* ملاحظات محسنة */
+    .note {
+      background: var(--note-color);
+      border-right: 3px solid var(--primary);
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 0 8px 8px 0;
+      animation: fadeIn 0.3s ease;
+      transition: all 0.2s;
+    }
+
+    .note:hover {
+      transform: translateX(5px);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .note-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .note-title {
+      font-weight: bold;
+      color: var(--primary);
+      font-size: 0.95rem;
+    }
+
+    .note-date {
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .note-content {
+      font-size: 0.9rem;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+
+    .note-actions {
+      display: flex;
+      gap: 5px;
+      margin-top: 5px;
+    }
+
+    .note-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .note-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .note-btn.edit {
+      color: var(--success);
+    }
+
+    .note-btn.delete {
+      color: var(--danger);
+    }
+
+    /* نافذة إضافة/تعديل ملاحظة محسنة */
+    .note-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .note-modal.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .note-modal-content {
+      background: var(--darker);
+      width: 90%;
+      max-width: 500px;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+      transform: translateY(20px);
+      transition: transform 0.3s;
+    }
+
+    .note-modal.active .note-modal-content {
+      transform: translateY(0);
+    }
+
+    .note-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .note-modal-title {
+      font-size: 1.2rem;
+      color: var(--primary);
+    }
+
+    .note-modal-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .note-modal-close:hover {
+      transform: rotate(90deg);
+    }
+
+    /* تبويب الملاحظات محسن */
+    .notes-tab {
+      position: fixed;
+      bottom: 70px;
+      left: 20px;
+      background: var(--primary);
+      color: white;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      z-index: 20;
+      transition: all 0.3s;
+    }
+
+    .notes-tab:hover {
+      background: var(--secondary);
+      transform: scale(1.1) rotate(15deg);
+    }
+
+    .notes-tab .badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: var(--danger);
+      color: white;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      font-size: 0.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* قسم الملاحظات محسن */
+    .notes-section {
+      position: fixed;
+      bottom: 70px;
+      left: 20px;
+      width: 300px;
+      max-height: 400px;
+      background: var(--darker);
+      border-radius: 8px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      display: none;
+      z-index: 30;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all 0.3s;
+    }
+
+    .notes-section.active {
+      display: flex;
+      flex-direction: column;
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .notes-header {
+      background: var(--primary);
+      color: white;
+      padding: 12px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .notes-title {
+      font-weight: bold;
+    }
+
+    .add-note-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .add-note-btn:hover {
+      transform: rotate(90deg);
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .notes-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    /* شريط التمرير */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--secondary);
+    }
+
+    /* تعديلات للشاشات الصغيرة */
+    @media (max-width: 768px) {
+      .app-container {
+        border-radius: 0;
+      }
+      
+      .header {
+        padding: 12px 15px;
+      }
+      
+      .logo {
+        font-size: 1.1rem;
+      }
+      
+      .logo i {
+        font-size: 1.3rem;
+      }
+      
+      .online-count {
+        font-size: 0.7rem;
+        padding: 3px 8px;
+      }
+      
+      .chat-area {
+        padding-bottom: 80px;
+      }
+      
+      .input-container {
+        padding: 8px 12px;
+      }
+      
+      input, .btn {
+        padding: 10px 12px;
+      }
+      
+      .scroll-to-bottom {
+        bottom: 70px;
+        right: 15px;
+        width: 35px;
+        height: 35px;
+      }
+      
+      .notes-section {
+        width: calc(100% - 40px);
+        left: 20px;
+        right: 20px;
+        max-height: 60vh;
+      }
+      
+      .notes-tab {
+        left: 15px;
+        bottom: 60px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- شاشة التحميل المحسنة -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loader"></div>
+    <div class="loading-text">جاري تحميل التطبيق...</div>
+  </div>
+
+  <!-- التطبيق الرئيسي -->
+  <div class="app-container" id="appContainer">
+    <div class="header">
+      <div class="logo">
+        <i class="fas fa-code"></i>
+        <span>عصابة المبرمجين</span>
+      </div>
+      <div class="user-info">
+        <div class="online-count">
+          <span class="indicator"></span>
+          <span id="onlineUsersCount">0</span> متصل
+        </div>
+        <div class="admin-badge" id="adminBadge">مشرف</div>
+      </div>
+    </div>
+
+    <div class="auth-container" id="authContainer">
+      <div class="title">
+        <h2>مرحباً بك في الدردشة التقنية</h2>
+        <p>مكان للتواصل بين المبرمجين ومشاركة الأفكار التقنية</p>
+      </div>
+      <div class="input-group">
+        <label for="usernameInput">اسم المستخدم</label>
+        <input type="text" id="usernameInput" placeholder="اختر اسمًا فريدًا..." autocomplete="off" maxlength="20">
+      </div>
+      <button class="btn" id="joinButton" onclick="joinChat()">
+        <i class="fas fa-sign-in-alt"></i>
+        دخول الدردشة
+      </button>
+      <div class="error-message" id="authError"></div>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+      <div class="user-greeting">
+        مرحباً <span id="displayUsername"></span> 👋
+      </div>
+      <div class="typing-indicator" id="typingIndicator">
+        <span id="typingUsers"></span>
+        <div class="typing-dots" id="typingDots" style="display: none;">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+      <div class="chat-area-wrapper">
+        <div class="chat-area" id="chatArea"></div>
+      </div>
+      <div class="scroll-to-bottom" id="scrollToBottom" onclick="scrollToBottom()">
+        <i class="fas fa-arrow-down"></i>
+      </div>
+      <div class="input-container">
+        <div class="input-group">
+          <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." onkeypress="handleKeyPress(event)" autocomplete="off">
+        </div>
+        <button class="btn" onclick="sendMessage()">
+          <i class="fas fa-paper-plane"></i>
+          إرسال
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- تبويب الملاحظات المحسن -->
+  <div class="notes-tab" id="notesTab" onclick="toggleNotesSection()">
+    <i class="fas fa-sticky-note"></i>
+    <span class="badge" id="notesBadge" style="display: none;">0</span>
+  </div>
+
+  <!-- قسم الملاحظات المحسن -->
+  <div class="notes-section" id="notesSection">
+    <div class="notes-header">
+      <span class="notes-title">ملاحظاتي</span>
+      <button class="add-note-btn" onclick="showNoteModal()">
+        <i class="fas fa-plus"></i>
+      </button>
+    </div>
+    <div class="notes-list" id="notesList">
+      <!-- سيتم ملء الملاحظات هنا ديناميكيًا -->
+    </div>
+  </div>
+
+  <!-- نافذة إضافة/تعديل ملاحظة محسنة -->
+  <div class="note-modal" id="noteModal">
+    <div class="note-modal-content">
+      <div class="note-modal-header">
+        <span class="note-modal-title" id="noteModalTitle">إضافة ملاحظة جديدة</span>
+        <button class="note-modal-close" onclick="hideNoteModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="input-group">
+        <label for="noteTitleInput">عنوان الملاحظة (اختياري)</label>
+        <input type="text" id="noteTitleInput" placeholder="مثال: أفكار لمشروع جديد">
+      </div>
+      <div class="input-group">
+        <label for="noteContentInput">محتوى الملاحظة</label>
+        <textarea id="noteContentInput" rows="4" placeholder="اكتب محتوى الملاحظة هنا..." style="width: 100%; padding: 12px 15px; border: none; border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 0.9rem; resize: none;"></textarea>
+      </div>
+      <button class="btn" id="saveNoteBtn" onclick="saveNote()">
+        <i class="fas fa-save"></i>
+        حفظ الملاحظة
+      </button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCPaUeP9Xuc1UyjnQ5Kg3tGu6Gkm_peJ1U",
+      authDomain: "chat-375e0.firebaseapp.com",
+      databaseURL: "https://chat-375e0-default-rtdb.firebaseio.com",
+      projectId: "chat-375e0",
+      storageBucket: "chat-375e0.appspot.com",
+      messagingSenderId: "452320470709",
+      appId: "1:452320470709:web:3d8a11a529773ed64300fc"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Global variables
+    let currentUser = null;
+    let userRef = null;
+    let connectedRef = null;
+    let usersRef = null;
+    let messagesRef = null;
+    let isAdmin = false;
+    const ADMIN_USERNAME = "GM-MOHAMED";
+    
+    let autoScrollEnabled = true;
+    let isScrolling = false;
+    let typingTimeout = null;
+    let lastTypingTime = 0;
+    
+    // Notes variables
+    let notesRef = null;
+    let currentNoteId = null;
+    let notesCount = 0;
+    let notesListener = null;
+
+    // Initialize the app
+    function init() {
+      document.getElementById('authContainer').style.display = 'none';
+      document.getElementById('chatContainer').style.display = 'none';
+      
+      // Check for saved user
+      const savedUser = localStorage.getItem('chatUsername');
+      if (savedUser) {
+        joinChat(savedUser);
+      } else {
+        setTimeout(() => {
+          document.getElementById('loadingScreen').style.opacity = '0';
+          setTimeout(() => {
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('appContainer').classList.add('show');
+            document.getElementById('authContainer').style.display = 'flex';
+            document.getElementById('usernameInput').focus();
+          }, 500);
+        }, 1500);
+      }
+      
+      setupOnlineStatus();
+      setupButtonRippleEffect();
+      setupUsernameInputValidation();
+    }
+
+    // Setup button ripple effect
+    function setupButtonRippleEffect() {
+      const buttons = document.querySelectorAll('.btn');
+      buttons.forEach(button => {
+        button.addEventListener('click', function(e) {
+          const rect = this.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          
+          const ripple = document.createElement('span');
+          ripple.className = 'ripple';
+          ripple.style.left = x + 'px';
+          ripple.style.top = y + 'px';
+          
+          this.appendChild(ripple);
+          
+          setTimeout(() => {
+            ripple.remove();
+          }, 600);
+        });
+      });
+    }
+
+    // Setup username input validation
+    function setupUsernameInputValidation() {
+      const usernameInput = document.getElementById('usernameInput');
+      usernameInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[^a-zA-Z0-9_\u0600-\u06FF\-\. ]/g, '');
+      });
+    }
+
+    // Join chat function with improved validation
+    function joinChat(username = null) {
+      const usernameInput = username || document.getElementById('usernameInput').value.trim();
+      const authError = document.getElementById('authError');
+      
+      if (!usernameInput) {
+        showError(authError, 'يجب إدخال اسم المستخدم');
+        return;
+      }
+      
+      if (usernameInput.length < 3 || usernameInput.length > 20) {
+        showError(authError, 'يجب أن يكون اسم المستخدم بين 3 و20 حرفاً');
+        return;
+      }
+      
+      if (/[^a-zA-Z0-9_\u0600-\u06FF\-\. ]/.test(usernameInput)) {
+        showError(authError, 'اسم المستخدم يحتوي على أحرف غير مسموحة');
+        return;
+      }
+      
+      document.getElementById('loadingScreen').style.display = 'flex';
+      document.getElementById('loadingScreen').style.opacity = '1';
+      document.getElementById('appContainer').classList.remove('show');
+      
+      // Disable join button during processing
+      const joinButton = document.getElementById('joinButton');
+      joinButton.disabled = true;
+      joinButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
+      
+      // Improved user check query
+      database.ref('users').orderByChild('name').equalTo(usernameInput).once('value')
+        .then(snapshot => {
+          let userExists = false;
+          snapshot.forEach(user => {
+            if (user.val().online) {
+              userExists = true;
+            }
+          });
+          
+          if (userExists) {
+            document.getElementById('loadingScreen').style.opacity = '0';
+            setTimeout(() => {
+              document.getElementById('loadingScreen').style.display = 'none';
+              document.getElementById('appContainer').classList.add('show');
+              document.getElementById('authContainer').style.display = 'flex';
+            }, 500);
+            
+            showError(authError, 'اسم المستخدم هذا مستخدم بالفعل، يرجى اختيار اسم آخر');
+            joinButton.disabled = false;
+            joinButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول الدردشة';
+            return;
+          }
+          
+          currentUser = usernameInput;
+          localStorage.setItem('chatUsername', currentUser);
+          
+          isAdmin = currentUser === ADMIN_USERNAME;
+          if (isAdmin) {
+            document.getElementById('adminBadge').style.display = 'block';
+          }
+          
+          userRef = database.ref('users/' + currentUser);
+          userRef.set({
+            name: currentUser,
+            online: true,
+            lastActive: Date.now(),
+            isAdmin: isAdmin,
+            typing: false
+          });
+          
+          userRef.onDisconnect().update({
+            online: false,
+            lastActive: Date.now(),
+            typing: false
+          });
+          
+          setTimeout(() => {
+            document.getElementById('loadingScreen').style.opacity = '0';
+            setTimeout(() => {
+              document.getElementById('loadingScreen').style.display = 'none';
+              document.getElementById('appContainer').classList.add('show');
+              showChatView();
+              joinButton.disabled = false;
+              joinButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول الدردشة';
+            }, 500);
+          }, 1000);
+        })
+        .catch(error => {
+          console.error('Error checking username:', error);
+          showError(authError, 'حدث خطأ في الاتصال بالخادم');
+          joinButton.disabled = false;
+          joinButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول الدردشة';
+        });
+    }
+
+    // Show error message with improved animation
+    function showError(element, message) {
+      element.textContent = message;
+      element.style.display = 'block';
+      setTimeout(() => {
+        element.textContent = '';
+        element.style.display = 'none';
+      }, 3000);
+    }
+
+    // Show chat view with improved transitions
+    function showChatView() {
+      document.getElementById('authContainer').style.display = 'none';
+      document.getElementById('chatContainer').style.display = 'flex';
+      document.getElementById('displayUsername').textContent = currentUser;
+      
+      setTimeout(() => {
+        document.getElementById('messageInput').focus();
+      }, 100);
+      
+      loadMessages();
+      setupChatScroll();
+      setupTypingIndicator();
+      setupNotes();
+      
+      // Show welcome notification
+      showNotification('تم الاتصال بنجاح! مرحباً بك في الدردشة');
+    }
+
+    // Setup notes functionality with improved performance
+    function setupNotes() {
+      notesRef = database.ref('notes/' + currentUser);
+      
+      // Remove previous listener if exists
+      if (notesListener) {
+        notesListener();
+      }
+      
+      // Load existing notes with improved query
+      notesListener = notesRef.orderByChild('timestamp').on('value', snapshot => {
+        const notesList = document.getElementById('notesList');
+        notesList.innerHTML = '';
+        notesCount = 0;
+        
+        if (snapshot.exists()) {
+          const notes = snapshot.val();
+          Object.keys(notes).forEach(noteId => {
+            addNoteToUI(notes[noteId], noteId);
+            notesCount++;
+          });
+        }
+        
+        updateNotesBadge();
+      });
+    }
+
+    // Add note to UI with improved design
+    function addNoteToUI(note, noteId) {
+      const notesList = document.getElementById('notesList');
+      const noteElement = document.createElement('div');
+      noteElement.className = 'note';
+      noteElement.setAttribute('data-note-id', noteId);
+      
+      noteElement.innerHTML = `
+        <div class="note-header">
+          <span class="note-title">${note.title || 'بدون عنوان'}</span>
+          <span class="note-date">${formatDate(note.timestamp)}</span>
+        </div>
+        <div class="note-content">${note.content || 'لا يوجد محتوى'}</div>
+        <div class="note-actions">
+          <button class="note-btn edit" onclick="editNote('${noteId}', event)">
+            <i class="fas fa-edit"></i> تعديل
+          </button>
+          <button class="note-btn delete" onclick="deleteNote('${noteId}', event)">
+            <i class="fas fa-trash"></i> حذف
+          </button>
+        </div>
+      `;
+      
+      notesList.appendChild(noteElement);
+    }
+
+    // Show note modal with improved UX
+    function showNoteModal(noteId = null) {
+      const modal = document.getElementById('noteModal');
+      const titleInput = document.getElementById('noteTitleInput');
+      const contentInput = document.getElementById('noteContentInput');
+      
+      currentNoteId = noteId;
+      
+      if (noteId) {
+        // Edit existing note
+        document.getElementById('noteModalTitle').textContent = 'تعديل الملاحظة';
+        notesRef.child(noteId).once('value').then(snapshot => {
+          const note = snapshot.val();
+          titleInput.value = note.title || '';
+          contentInput.value = note.content || '';
+          modal.classList.add('active');
+          contentInput.focus();
+        });
+      } else {
+        // Add new note
+        document.getElementById('noteModalTitle').textContent = 'إضافة ملاحظة جديدة';
+        titleInput.value = '';
+        contentInput.value = '';
+        modal.classList.add('active');
+        contentInput.focus();
+      }
+    }
+
+    // Hide note modal with animation
+    function hideNoteModal() {
+      const modal = document.getElementById('noteModal');
+      modal.classList.remove('active');
+    }
+
+    // Save note with improved validation
+    function saveNote() {
+      const title = document.getElementById('noteTitleInput').value.trim();
+      const content = document.getElementById('noteContentInput').value.trim();
+      const saveBtn = document.getElementById('saveNoteBtn');
+      
+      if (!content) {
+        showNotification('يجب إدخال محتوى للملاحظة');
+        document.getElementById('noteContentInput').focus();
+        return;
+      }
+      
+      const noteData = {
+        title: title,
+        content: content,
+        timestamp: Date.now()
+      };
+      
+      // Disable save button during operation
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+      
+      if (currentNoteId) {
+        // Update existing note
+        notesRef.child(currentNoteId).update(noteData)
+          .then(() => {
+            showNotification('تم تحديث الملاحظة بنجاح');
+            hideNoteModal();
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> حفظ الملاحظة';
+          })
+          .catch(error => {
+            console.error('Error updating note:', error);
+            showNotification('حدث خطأ أثناء تحديث الملاحظة');
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> حفظ الملاحظة';
+          });
+      } else {
+        // Add new note
+        notesRef.push(noteData)
+          .then(() => {
+            showNotification('تم إضافة الملاحظة بنجاح');
+            hideNoteModal();
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> حفظ الملاحظة';
+          })
+          .catch(error => {
+            console.error('Error adding note:', error);
+            showNotification('حدث خطأ أثناء إضافة الملاحظة');
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> حفظ الملاحظة';
+          });
+      }
+    }
+
+    // Edit note with event propagation control
+    function editNote(noteId, event) {
+      event.stopPropagation();
+      showNoteModal(noteId);
+    }
+
+    // Delete note with confirmation and event control
+    function deleteNote(noteId, event) {
+      event.stopPropagation();
+      if (confirm('هل أنت متأكد من حذف هذه الملاحظة؟')) {
+        notesRef.child(noteId).remove()
+          .then(() => {
+            showNotification('تم حذف الملاحظة بنجاح');
+            notesCount--;
+            updateNotesBadge();
+          })
+          .catch(error => {
+            console.error('Error deleting note:', error);
+            showNotification('حدث خطأ أثناء حذف الملاحظة');
+          });
+      }
+    }
+
+    // Toggle notes section with animation
+    function toggleNotesSection() {
+      const notesSection = document.getElementById('notesSection');
+      notesSection.classList.toggle('active');
+      
+      // Close notes when clicking outside
+      if (notesSection.classList.contains('active')) {
+        setTimeout(() => {
+          document.addEventListener('click', closeNotesOnClickOutside);
+        }, 10);
+      } else {
+        document.removeEventListener('click', closeNotesOnClickOutside);
+      }
+    }
+
+    function closeNotesOnClickOutside(event) {
+      const notesSection = document.getElementById('notesSection');
+      const notesTab = document.getElementById('notesTab');
+      
+      if (!notesSection.contains(event.target) && !notesTab.contains(event.target)) {
+        notesSection.classList.remove('active');
+        document.removeEventListener('click', closeNotesOnClickOutside);
+      }
+    }
+
+    // Update notes badge count
+    function updateNotesBadge() {
+      const badge = document.getElementById('notesBadge');
+      if (notesCount > 0) {
+        badge.textContent = notesCount > 9 ? '9+' : notesCount;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    // Format date for notes with improved Arabic format
+    function formatDate(timestamp) {
+      const date = new Date(timestamp);
+      const options = {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        numberingSystem: 'arab'
+      };
+      return date.toLocaleString('ar-EG', options);
+    }
+
+    // Show notification with improved design
+    function showNotification(message) {
+      const notification = document.createElement('div');
+      notification.className = 'notification';
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'fadeOut 0.5s ease-in forwards';
+        setTimeout(() => {
+          notification.remove();
+        }, 500);
+      }, 2500);
+    }
+
+    // Setup chat scroll behavior with improved performance
+    function setupChatScroll() {
+      const chatArea = document.getElementById('chatArea');
+      const scrollToBottomBtn = document.getElementById('scrollToBottom');
+      
+      // Throttled scroll position check
+      const checkScrollPosition = () => {
+        if (isScrolling) return;
+        
+        const isNearBottom = chatArea.scrollHeight - chatArea.scrollTop - chatArea.clientHeight < 100;
+        if (isNearBottom) {
+          scrollToBottomBtn.classList.remove('visible');
+          autoScrollEnabled = true;
+        } else {
+          scrollToBottomBtn.classList.add('visible');
+          autoScrollEnabled = false;
+        }
+      };
+      
+      // Initial check
+      checkScrollPosition();
+      
+      // Throttled scroll event listener
+      let isThrottled = false;
+      chatArea.addEventListener('scroll', () => {
+        if (!isThrottled) {
+          checkScrollPosition();
+          isThrottled = true;
+          setTimeout(() => {
+            isThrottled = false;
+          }, 100);
+        }
+      });
+      
+      // Handle keyboard appearance
+      const messageInput = document.getElementById('messageInput');
+      messageInput.addEventListener('focus', () => {
+        setTimeout(() => {
+          scrollToBottom();
+        }, 300);
+      });
+    }
+
+    // Scroll to bottom function with improved behavior
+    function scrollToBottom() {
+      const chatArea = document.getElementById('chatArea');
+      isScrolling = true;
+      
+      // Check if we're already at the bottom
+      const isAtBottom = chatArea.scrollHeight - chatArea.scrollTop - chatArea.clientHeight < 10;
+      if (isAtBottom) {
+        isScrolling = false;
+        return;
+      }
+      
+      chatArea.scrollTo({
+        top: chatArea.scrollHeight,
+        behavior: 'smooth'
+      });
+      
+      setTimeout(() => {
+        autoScrollEnabled = true;
+        document.getElementById('scrollToBottom').classList.remove('visible');
+        isScrolling = false;
+      }, 500);
+    }
+
+    // Set up online status tracking with improved efficiency
+    function setupOnlineStatus() {
+      connectedRef = database.ref('.info/connected');
+      usersRef = database.ref('users');
+      
+      // More efficient online count tracking
+      usersRef.orderByChild('online').equalTo(true).on('value', snapshot => {
+        document.getElementById('onlineUsersCount').textContent = snapshot.numChildren();
+      });
+    }
+
+    // Setup typing indicator with improved performance
+    function setupTypingIndicator() {
+      const messageInput = document.getElementById('messageInput');
+      const typingIndicator = document.getElementById('typingIndicator');
+      const typingUsers = document.getElementById('typingUsers');
+      const typingDots = document.getElementById('typingDots');
+      
+      // More efficient typing status listener
+      database.ref('users').orderByChild('typing').equalTo(true).on('value', snapshot => {
+        const typers = [];
+        const now = Date.now();
+        
+        snapshot.forEach(user => {
+          const userData = user.val();
+          // Only show if typing in last 4 seconds
+          if (userData.name !== currentUser && userData.online && 
+              (!userData.lastTypingUpdate || now - userData.lastTypingUpdate < 4000)) {
+            typers.push(userData.name);
+          }
+        });
+        
+        if (typers.length > 0) {
+          const typingText = typers.length === 1 ? 
+            `${typers[0]} يكتب...` : 
+            `${typers.slice(0, -1).join('، ')} و ${typers[typers.length - 1]} يكتبون...`;
+          
+          typingUsers.textContent = typingText;
+          typingDots.style.display = 'flex';
+          typingIndicator.style.display = 'flex';
+        } else {
+          typingIndicator.style.display = 'none';
+        }
+      });
+      
+      // Improved typing status update with throttling
+      let typingInputTimer;
+      messageInput.addEventListener('input', () => {
+        clearTimeout(typingInputTimer);
+        updateTypingStatus(true);
+        
+        typingInputTimer = setTimeout(() => {
+          updateTypingStatus(false);
+        }, 3000);
+      });
+      
+      // Reset typing status when input loses focus
+      messageInput.addEventListener('blur', () => {
+        updateTypingStatus(false);
+      });
+    }
+
+    // Update typing status in database with throttling
+    function updateTypingStatus(isTyping) {
+      if (!currentUser) return;
+      
+      const now = Date.now();
+      // Only update if more than 1 second has passed since last update
+      if (isTyping && now - lastTypingTime < 1000) return;
+      
+      lastTypingTime = now;
+      database.ref('users/' + currentUser).update({
+        typing: isTyping,
+        lastTypingUpdate: now
+      });
+    }
+
+    // Send message function with improved feedback
+    function sendMessage() {
+      const messageInput = document.getElementById('messageInput');
+      const message = messageInput.value.trim();
+      
+      if (!message || !currentUser) return;
+      
+      // Update typing status to false when sending
+      updateTypingStatus(false);
+      
+      // Disable input during send
+      messageInput.disabled = true;
+      const sendBtn = document.querySelector('.input-container .btn');
+      sendBtn.disabled = true;
+      sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+      
+      database.ref('messages').push({
+        user: currentUser,
+        text: message,
+        timestamp: Date.now(),
+        isAdmin: isAdmin
+      }).then(() => {
+        messageInput.value = '';
+        messageInput.disabled = false;
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال';
+        messageInput.focus();
+        
+        // Scroll to bottom after sending message
+        setTimeout(scrollToBottom, 100);
+      }).catch(error => {
+        console.error('Error sending message:', error);
+        showNotification('حدث خطأ أثناء إرسال الرسالة');
+        messageInput.disabled = false;
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال';
+      });
+    }
+
+    // Handle Enter key press with improved UX
+    function handleKeyPress(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    }
+
+    // Load messages with improved performance
+    function loadMessages() {
+      // Clear previous listeners
+      if (messagesRef) {
+        messagesRef.off();
+      }
+      
+      messagesRef = database.ref('messages').limitToLast(100);
+      
+      messagesRef.on('child_added', snapshot => {
+        const message = snapshot.val();
+        displayMessage(message, snapshot.key);
+        
+        // Auto-scroll to bottom when new message arrives if enabled
+        if (autoScrollEnabled) {
+          setTimeout(scrollToBottom, 100);
+        }
+      });
+
+      messagesRef.on('child_removed', snapshot => {
+        const messageId = snapshot.key;
+        const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+        if (messageElement) {
+          messageElement.style.animation = 'fadeOut 0.3s ease';
+          setTimeout(() => {
+            messageElement.remove();
+          }, 300);
+        }
+      });
+    }
+
+    // Display message in chat area with improved design
+    function displayMessage(message, messageId) {
+      const chatArea = document.getElementById('chatArea');
+      const isCurrentUser = message.user === currentUser;
+      const isAdminMessage = message.isAdmin;
+      
+      // Check if message already exists
+      if (document.querySelector(`[data-message-id="${messageId}"]`)) {
+        return;
+      }
+      
+      const messageElement = document.createElement('div');
+      messageElement.className = `message ${isCurrentUser ? 'sent' : 'received'} ${isAdminMessage ? 'admin-message' : ''}`;
+      messageElement.setAttribute('data-message-id', messageId);
+      
+      const adminTag = isAdminMessage ? '<span class="admin-tag">(مشرف)</span>' : '';
+      
+      messageElement.innerHTML = `
+        <div class="sender">
+          <span>${message.user} ${adminTag}</span>
+          ${isAdmin ? `<div class="message-actions">
+            <button class="delete-btn" onclick="deleteMessage('${messageId}', event)">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>` : ''}
+        </div>
+        <div class="text">${message.text}</div>
+        <div class="time">${formatTime(message.timestamp)}</div>
+      `;
+      
+      chatArea.appendChild(messageElement);
+    }
+
+    // Delete message function (only for admin) with event control
+    function deleteMessage(messageId, event) {
+      if (event) event.stopPropagation();
+      
+      if (currentUser === ADMIN_USERNAME) {
+        if (confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
+          database.ref('messages/' + messageId).remove()
+            .then(() => {
+              showNotification('تم حذف الرسالة بنجاح');
+            })
+            .catch(error => {
+              console.error('Error deleting message:', error);
+              showNotification('حدث خطأ أثناء حذف الرسالة');
+            });
+        }
+      }
+    }
+
+    // Format timestamp with improved Arabic format
+    function formatTime(timestamp) {
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString('ar-EG', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        numberingSystem: 'arab'
+      });
+    }
+
+    // Initialize the app when window loads
+    window.onload = function() {
+      document.getElementById('loadingScreen').style.display = 'flex';
+      setTimeout(init, 500);
+      
+      // Handle beforeunload to clean up
+      window.addEventListener('beforeunload', () => {
+        if (currentUser) {
+          database.ref('users/' + currentUser).update({
+            online: false,
+            typing: false,
+            lastActive: Date.now()
+          });
+          
+          // Remove notes listener
+          if (notesListener) {
+            notesListener();
+          }
+        }
+      });
+    };
+  </script>
+</body>
+</html>
