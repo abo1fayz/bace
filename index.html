@@ -1081,48 +1081,37 @@
 
     // Join chat function with improved validation
     async function joinChat(username = null) {
-      const usernameInput = username || document.getElementById('usernameInput').value.trim();
-      const passwordInput = document.getElementById('passwordInput').value.trim();
-      if (!passwordInput) {
-        showError(authError, 'يرجى إدخال كلمة المرور');
-        return;
-      }
+  const usernameInput = username || document.getElementById('usernameInput').value.trim();
+  const passwordInput = document.getElementById('passwordInput').value.trim();
+  const authError = document.getElementById('authError');
 
-      const authError = document.getElementById('authError');
-      
-      if (!usernameInput) {
-        showError(authError, 'يجب إدخال اسم المستخدم');
-        return;
-      }
-      
-      if (usernameInput.length < 3 || usernameInput.length > 20) {
-        showError(authError, 'يجب أن يكون اسم المستخدم بين 3 و20 حرفاً');
-        return;
-      }
-      
-      if (/[^a-zA-Z0-9_\u0600-\u06FF\-\. ]/.test(usernameInput)) {
-        showError(authError, 'اسم المستخدم يحتوي على أحرف غير مسموحة');
-        return;
-      }
-      
-      document.getElementById('loadingScreen').style.display = 'flex';
-      document.getElementById('loadingScreen').style.opacity = '1';
-      document.getElementById('appContainer').classList.remove('show');
-      
-      // Disable join button during processing
-      const joinButton = document.getElementById('joinButton');
-      joinButton.disabled = true;
-      joinButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
-      
-      // Improved user check query
-      database.ref('users').orderByChild('name').equalTo(usernameInput).once('value')
-        .then(snapshot => {
-          let userExists = false;
-          snapshot.forEach(user => {
-            if (user.val().online) {
-              userExists = true;
-            }
-          });
+  if (!usernameInput || !passwordInput) {
+    showError(authError, 'يجب إدخال الاسم وكلمة المرور');
+    return;
+  }
+
+  const userRefCheck = database.ref('users/' + usernameInput);
+  const snapshot = await userRefCheck.once('value');
+  const data = snapshot.val();
+
+  if (data) {
+    // اسم موجود → تحقق من كلمة المرور
+    if (data.password !== passwordInput) {
+      showError(authError, 'كلمة المرور غير صحيحة');
+      return;
+    }
+
+    finishJoin(usernameInput, passwordInput); // تسجيل دخول فقط
+  } else {
+    // اسم غير موجود → تأكيد التسجيل
+    const confirmRegister = confirm(`الاسم "${usernameInput}" غير مسجل، هل تريد إنشاء حساب جديد بهذا الاسم؟`);
+    if (confirmRegister) {
+      finishJoin(usernameInput, passwordInput); // تسجيل جديد
+    } else {
+      showError(authError, 'تم إلغاء عملية التسجيل');
+    }
+  }
+});
           
           if (userExists) {
             document.getElementById('loadingScreen').style.opacity = '0';
