@@ -1,161 +1,280 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>محادثة بسيطة</title>
+  <title>محادثة متجاوبة</title>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      padding: 20px; 
-      max-width: 800px; 
-      margin: 0 auto;
-      background-color: #f5f5f5;
+    :root {
+      --primary-color: #4CAF50;
+      --primary-dark: #388E3C;
+      --error-color: #f44336;
+      --error-dark: #d32f2f;
+      --text-color: #333;
+      --light-bg: #f5f5f5;
+      --white: #fff;
+      --message-self: #e1f5fe;
+      --message-other: #f1f8e9;
     }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      padding: 15px; 
+      background-color: var(--light-bg);
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    
     #chat, #login, #register { 
       display: none; 
       margin-top: 20px; 
-      background: white;
+      background: var(--white);
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      width: 100%;
     }
+    
     .message { 
       margin: 10px 0; 
-      padding: 8px 12px;
-      border-radius: 5px;
-      background: #f0f8ff;
+      padding: 10px 15px;
+      border-radius: 15px;
+      max-width: 80%;
+      word-wrap: break-word;
     }
+    
     .message.self {
-      background: #e1f5fe;
-      text-align: left;
+      background: var(--message-self);
+      margin-left: auto;
+      border-bottom-right-radius: 5px;
     }
+    
     .message.other {
-      background: #f1f8e9;
+      background: var(--message-other);
+      margin-right: auto;
+      border-bottom-left-radius: 5px;
+    }
+    
+    .message-time {
+      font-size: 0.8em;
+      color: #666;
+      display: block;
+      margin-top: 5px;
       text-align: right;
     }
+    
     #usersList { 
       margin-top: 20px; 
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       gap: 10px;
     }
+    
     .user-button { 
       cursor: pointer; 
       padding: 10px 15px; 
-      background: #4CAF50; 
-      color: white;
+      background: var(--primary-color); 
+      color: var(--white);
       border: none; 
       border-radius: 20px;
       display: flex;
       align-items: center;
       gap: 8px;
       transition: all 0.3s;
+      font-size: 0.9em;
     }
+    
     .user-button:hover { 
-      background: #388E3C;
+      background: var(--primary-dark);
       transform: translateY(-2px);
     }
+    
     .user-icon {
       width: 24px;
       height: 24px;
       border-radius: 50%;
-      background-color: #fff;
-      color: #4CAF50;
+      background-color: var(--white);
+      color: var(--primary-color);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
+      flex-shrink: 0;
     }
-    input {
-      padding: 10px;
+    
+    input, textarea {
+      padding: 12px;
       border: 1px solid #ddd;
-      border-radius: 5px;
+      border-radius: 8px;
       width: 100%;
       margin-bottom: 10px;
+      font-family: inherit;
+      resize: none;
     }
+    
     button {
-      padding: 10px 15px;
-      background: #4CAF50;
-      color: white;
+      padding: 12px 20px;
+      background: var(--primary-color);
+      color: var(--white);
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
       transition: background 0.3s;
+      font-weight: bold;
     }
+    
     button:hover {
-      background: #388E3C;
+      background: var(--primary-dark);
     }
+    
     #messageContainer {
       display: flex;
       gap: 10px;
       margin-top: 20px;
     }
+    
     #message {
       flex-grow: 1;
+      min-height: 50px;
+      max-height: 100px;
     }
+    
     #messages {
-      height: 300px;
+      height: 50vh;
       overflow-y: auto;
       padding: 10px;
       border: 1px solid #ddd;
-      border-radius: 5px;
+      border-radius: 10px;
       margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
     }
+    
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
+    
+    h1 {
+      color: var(--primary-dark);
+      font-size: 1.8em;
+    }
+    
     .logout-btn {
-      background: #f44336;
+      background: var(--error-color);
+      padding: 10px 15px;
     }
+    
     .logout-btn:hover {
-      background: #d32f2f;
+      background: var(--error-dark);
     }
+    
     .active-chat {
-      background: #388E3C !important;
-      box-shadow: 0 0 0 2px white, 0 0 0 4px #4CAF50;
+      background: var(--primary-dark) !important;
+      box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--primary-color);
+    }
+    
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #8BC34A;
+      display: inline-block;
+      margin-left: 5px;
+    }
+    
+    .offline {
+      background-color: #9E9E9E;
+    }
+    
+    .toggle-forms {
+      color: var(--primary-dark);
+      text-decoration: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    .toggle-forms:hover {
+      text-decoration: underline;
+    }
+    
+    @media (max-width: 600px) {
+      #usersList {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      }
+      
+      .message {
+        max-width: 90%;
+      }
+      
+      h1 {
+        font-size: 1.5em;
+      }
+      
+      #messageContainer {
+        flex-direction: column;
+      }
+      
+      button {
+        width: 100%;
+      }
     }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
-  <div class="header">
-    <h1>مرحباً بك في الدردشة</h1>
-    <button id="logoutBtn" class="logout-btn" onclick="logout()" style="display: none;">تسجيل الخروج</button>
-  </div>
+  <div class="container">
+    <div class="header">
+      <h1>مرحباً بك في الدردشة</h1>
+      <button id="logoutBtn" class="logout-btn" onclick="logout()" style="display: none;">تسجيل الخروج</button>
+    </div>
 
-  <div id="register">
-    <h2>تسجيل مستخدم جديد</h2>
-    <input type="text" id="regName" placeholder="اسم المستخدم"><br>
-    <input type="password" id="regPass" placeholder="كلمة السر"><br>
-    <button onclick="register()">تسجيل</button>
-    <p>لديك حساب بالفعل؟ <a href="#" onclick="showLogin()">سجل دخول</a></p>
-  </div>
+    <div id="register">
+      <h2>تسجيل مستخدم جديد</h2>
+      <input type="text" id="regName" placeholder="اسم المستخدم" required>
+      <input type="password" id="regPass" placeholder="كلمة السر" required>
+      <button onclick="register()">تسجيل</button>
+      <p>لديك حساب بالفعل؟ <a class="toggle-forms" onclick="showLogin()">سجل دخول</a></p>
+    </div>
 
-  <div id="login">
-    <h2>تسجيل الدخول</h2>
-    <input type="text" id="loginName" placeholder="اسم المستخدم"><br>
-    <input type="password" id="loginPass" placeholder="كلمة السر"><br>
-    <button onclick="login()">دخول</button>
-    <p>ليس لديك حساب؟ <a href="#" onclick="showRegister()">سجل الآن</a></p>
-  </div>
+    <div id="login">
+      <h2>تسجيل الدخول</h2>
+      <input type="text" id="loginName" placeholder="اسم المستخدم" required>
+      <input type="password" id="loginPass" placeholder="كلمة السر" required>
+      <button onclick="login()">دخول</button>
+      <p>ليس لديك حساب؟ <a class="toggle-forms" onclick="showRegister()">سجل الآن</a></p>
+    </div>
 
-  <div id="chat">
-    <h2>مرحبا <span id="userName"></span>!</h2>
-    <div id="usersList"></div>
-    <div id="chatArea" style="display: none;">
-      <h3>محادثة مع: <span id="chatWith"></span></h3>
-      <div id="messages"></div>
-      <div id="messageContainer">
-        <input type="text" id="message" placeholder="اكتب رسالة...">
-        <button onclick="sendMessage()">إرسال</button>
+    <div id="chat">
+      <h2>مرحبا <span id="userName"></span>!</h2>
+      <div id="usersList"></div>
+      <div id="chatArea" style="display: none;">
+        <h3>محادثة مع: <span id="chatWith"></span> <span id="partnerStatus" class="status-dot offline"></span></h3>
+        <div id="messages"></div>
+        <div id="messageContainer">
+          <textarea id="message" placeholder="اكتب رسالة..." rows="2"></textarea>
+          <button onclick="sendMessage()">إرسال</button>
+        </div>
       </div>
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCPaUeP9Xuc1UyjnQ5Kg3tGu6Gkm_peJ1U",
@@ -174,6 +293,7 @@
     let chatWith = null;
     let messagesRef = null;
     let userButtons = {};
+    let partnerStatusRef = null;
 
     if (currentUser) {
       showChat(currentUser);
@@ -185,11 +305,13 @@
     function showRegister() {
       document.getElementById("login").style.display = 'none';
       document.getElementById("register").style.display = 'block';
+      document.getElementById("regName").focus();
     }
 
     function showLogin() {
       document.getElementById("register").style.display = 'none';
       document.getElementById("login").style.display = 'block';
+      document.getElementById("loginName").focus();
     }
 
     function register() {
@@ -206,7 +328,8 @@
           } else {
             db.ref("users/" + name).set({ 
               password: pass,
-              lastSeen: Date.now()
+              lastSeen: Date.now(),
+              isOnline: true
             });
             localStorage.setItem("username", name);
             currentUser = name;
@@ -232,8 +355,11 @@
           currentUser = name;
           showChat(name);
           document.getElementById("logoutBtn").style.display = 'block';
-          // Update last seen
-          db.ref("users/" + name).update({ lastSeen: Date.now() });
+          // Update user status
+          db.ref("users/" + name).update({ 
+            lastSeen: Date.now(),
+            isOnline: true
+          });
         } else {
           alert("البيانات غير صحيحة");
         }
@@ -241,6 +367,14 @@
     }
 
     function logout() {
+      // Set user as offline before logging out
+      if (currentUser) {
+        db.ref("users/" + currentUser).update({ 
+          isOnline: false,
+          lastSeen: Date.now()
+        });
+      }
+      
       localStorage.removeItem("username");
       currentUser = null;
       document.getElementById("register").style.display = 'none';
@@ -248,6 +382,7 @@
       document.getElementById("login").style.display = 'block';
       document.getElementById("logoutBtn").style.display = 'none';
       if (messagesRef) messagesRef.off();
+      if (partnerStatusRef) partnerStatusRef.off();
     }
 
     function showChat(username) {
@@ -258,19 +393,25 @@
       loadUsers();
       
       // Update user presence
-      db.ref("users/" + username).update({ lastSeen: Date.now() });
+      db.ref("users/" + username).update({ 
+        lastSeen: Date.now(),
+        isOnline: true
+      });
       
       // Set up presence tracking
       window.addEventListener('beforeunload', () => {
-        db.ref("users/" + username).update({ lastSeen: Date.now() });
+        db.ref("users/" + username).update({ 
+          isOnline: false,
+          lastSeen: Date.now()
+        });
       });
     }
 
     function loadUsers() {
       const userListDiv = document.getElementById("usersList");
-      userListDiv.innerHTML = "<h3>المستخدمون المتاحون:</h3>";
+      userListDiv.innerHTML = "<h3 style='grid-column: 1/-1'>المستخدمون المتاحون:</h3>";
       db.ref("users").on("value", snap => {
-        userListDiv.innerHTML = "<h3>المستخدمون المتاحون:</h3>";
+        userListDiv.innerHTML = "<h3 style='grid-column: 1/-1'>المستخدمون المتاحون:</h3>";
         snap.forEach(userSnap => {
           const name = userSnap.key;
           if (name !== currentUser) {
@@ -287,10 +428,20 @@
             }
             
             // Update user status
-            const lastSeen = userSnap.val().lastSeen || 0;
-            const isOnline = (Date.now() - lastSeen) < 300000; // 5 minutes
+            const userData = userSnap.val();
+            const isOnline = userData.isOnline && (Date.now() - (userData.lastSeen || 0)) < 300000; // 5 minutes
             userButtons[name].style.opacity = isOnline ? '1' : '0.7';
-            userButtons[name].title = isOnline ? 'متصل الآن' : `آخر ظهور: ${new Date(lastSeen).toLocaleTimeString()}`;
+            userButtons[name].title = isOnline ? 'متصل الآن' : `آخر ظهور: ${formatTime(userData.lastSeen)}`;
+            
+            // Add online indicator
+            let statusDot = userButtons[name].querySelector('.status-dot');
+            if (!statusDot) {
+              statusDot = document.createElement('span');
+              statusDot.className = 'status-dot ' + (isOnline ? '' : 'offline');
+              userButtons[name].appendChild(statusDot);
+            } else {
+              statusDot.className = 'status-dot ' + (isOnline ? '' : 'offline');
+            }
           }
         });
       });
@@ -310,37 +461,76 @@
       document.getElementById("messages").innerHTML = '';
       document.getElementById("chatArea").style.display = 'block';
       
+      // Update partner status
+      updatePartnerStatus(partner);
+      
       const chatId = currentUser < partner ? `${currentUser}_${partner}` : `${partner}_${currentUser}`;
       if (messagesRef) messagesRef.off();
       messagesRef = db.ref("messages/" + chatId);
       messagesRef.on("child_added", snap => {
         const msg = snap.val();
-        const div = document.createElement("div");
-        div.className = 'message ' + (msg.sender === currentUser ? 'self' : 'other');
-        div.innerText = msg.sender + ": " + msg.text;
-        document.getElementById("messages").appendChild(div);
-        document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+        addMessageToChat(msg.sender, msg.text, msg.timestamp);
       });
+    }
+    
+    function updatePartnerStatus(partner) {
+      if (partnerStatusRef) partnerStatusRef.off();
+      
+      partnerStatusRef = db.ref("users/" + partner);
+      partnerStatusRef.on("value", snap => {
+        if (snap.exists()) {
+          const userData = snap.val();
+          const isOnline = userData.isOnline && (Date.now() - (userData.lastSeen || 0)) < 300000;
+          const statusDot = document.getElementById("partnerStatus");
+          statusDot.className = 'status-dot ' + (isOnline ? '' : 'offline');
+          statusDot.title = isOnline ? 'متصل الآن' : `آخر ظهور: ${formatTime(userData.lastSeen)}`;
+        }
+      });
+    }
+    
+    function addMessageToChat(sender, text, timestamp) {
+      const div = document.createElement("div");
+      div.className = 'message ' + (sender === currentUser ? 'self' : 'other');
+      div.innerHTML = `
+        <strong>${sender}:</strong> ${text}
+        <span class="message-time">${formatTime(timestamp)}</span>
+      `;
+      document.getElementById("messages").appendChild(div);
+      document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
     }
 
     function sendMessage() {
       const msg = document.getElementById("message").value.trim();
       if (msg && chatWith) {
         const chatId = currentUser < chatWith ? `${currentUser}_${chatWith}` : `${chatWith}_${currentUser}`;
+        const timestamp = Date.now();
         db.ref("messages/" + chatId).push({ 
           sender: currentUser, 
           text: msg,
-          timestamp: Date.now()
+          timestamp: timestamp
         });
         document.getElementById("message").value = '';
       }
     }
     
-    // Handle Enter key for sending messages
-    document.getElementById("message").addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
+    function formatTime(timestamp) {
+      if (!timestamp) return 'غير معروف';
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    
+    // Handle Enter key for sending messages (but allow Shift+Enter for new line)
+    document.getElementById("message").addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
         sendMessage();
       }
+    });
+    
+    // Auto-resize textarea as user types
+    document.getElementById("message").addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
     });
   </script>
 </body>
