@@ -249,10 +249,10 @@
     }
 
     .user-greeting {
-      background: rgba(0, 0, 0, 0.2);
+      background: rgba(00, 200, 90, 0.2);
       padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 10px;
+      border-radius: 99px;
+      margin-bottom: 2px;
       text-align: center;
       font-weight: 500;
       animation: fadeIn 0.5s ease;
@@ -261,20 +261,23 @@
     .input-group {
       margin-bottom: 15px;
       position: relative;
+      display: flex;
+      align-items: center;
     }
 
     .input-group label {
       display: block;
+      
       margin-bottom: 5px;
       font-weight: 500;
-      font-size: 0.9rem;
+      font-weight:1.9rem;
     }
 
     input, textarea {
-      width: 100%;
+      width: 70%;
       padding: 12px 15px;
       border: none;
-      border-radius: 8px;
+      border-radius: 9px;
       background: rgba(255, 255, 255, 0.1);
       color: white;
       font-size: 0.9rem;
@@ -288,7 +291,7 @@
     }
 
     .btn {
-      width: 100%;
+      width: 30%;
       padding: 12px 15px;
       border: none;
       border-radius: 8px;
@@ -364,6 +367,14 @@
       flex: 1;
       position: relative;
       overflow: hidden;
+    }
+    
+    .lll{
+      color: red;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 10px;
     }
 
     .chat-area {
@@ -857,7 +868,8 @@
     <div class="header">
       <div class="logo">
         <i class="fas fa-code"></i>
-        <span>عصابة المبرمجين</span>
+        <span>فريق المبرمجين</span>
+        
       </div>
       <div class="user-info">
         <div class="online-count">
@@ -871,6 +883,8 @@
     <div class="auth-container" id="authContainer">
       <div class="title">
         <h2>مرحباً بك في الدردشة التقنية</h2>
+        
+        
         <p>مكان للتواصل بين المبرمجين ومشاركة الأفكار التقنية</p>
       </div>
       <div class="input-group">
@@ -883,11 +897,16 @@
       </button>
       <div class="error-message" id="authError"></div>
     </div>
+    
+    <div class="lll">
+        التطبيق في حالة التطور قد تواجهك اخطاء
+      </div>
 
     <div class="chat-container" id="chatContainer">
       <div class="user-greeting">
         مرحباً <span id="displayUsername"></span> 👋
       </div>
+      
       <div class="typing-indicator" id="typingIndicator">
         <span id="typingUsers"></span>
         <div class="typing-dots" id="typingDots" style="display: none;">
@@ -905,11 +924,13 @@
       <div class="input-container">
         <div class="input-group">
           <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." onkeypress="handleKeyPress(event)" autocomplete="off">
-        </div>
-        <button class="btn" onclick="sendMessage()">
+          
+          <button class="btn" onclick="sendMessage()">
           <i class="fas fa-paper-plane"></i>
           إرسال
         </button>
+        </div>
+        
       </div>
     </div>
   </div>
