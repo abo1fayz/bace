@@ -270,7 +270,7 @@
       
       margin-bottom: 5px;
       font-weight: 500;
-      font-weight:1.9rem;
+      font-size: 1.1rem;
     }
 
     input, textarea {
@@ -887,6 +887,12 @@
         
         <p>مكان للتواصل بين المبرمجين ومشاركة الأفكار التقنية</p>
       </div>
+      
+      <div class="input-group">
+        <label for="passwordInput">كلمة المرور</label>
+        <input type="password" id="passwordInput" placeholder="أدخل كلمة المرور..." autocomplete="off" maxlength="30">
+      </div>
+
       <div class="input-group">
         <label for="usernameInput">اسم المستخدم</label>
         <input type="text" id="usernameInput" placeholder="اختر اسمًا فريدًا..." autocomplete="off" maxlength="20">
@@ -1074,8 +1080,14 @@
     }
 
     // Join chat function with improved validation
-    function joinChat(username = null) {
+    async function joinChat(username = null) {
       const usernameInput = username || document.getElementById('usernameInput').value.trim();
+      const passwordInput = document.getElementById('passwordInput').value.trim();
+      if (!passwordInput) {
+        showError(authError, 'يرجى إدخال كلمة المرور');
+        return;
+      }
+
       const authError = document.getElementById('authError');
       
       if (!usernameInput) {
@@ -1126,7 +1138,28 @@
             return;
           }
           
-          currentUser = usernameInput;
+          
+          const existingUserRef = database.ref('users/' + usernameInput);
+          existingUserRef.once('value').then(snapshot => {
+            const data = snapshot.val();
+            if (data && data.password && data.password !== passwordInput) {
+              document.getElementById('loadingScreen').style.opacity = '0';
+              setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').classList.add('show');
+                document.getElementById('authContainer').style.display = 'flex';
+              }, 500);
+
+              showError(authError, 'كلمة المرور غير صحيحة لهذا الاسم');
+              joinButton.disabled = false;
+              joinButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول الدردشة';
+              return;
+            }
+
+            finishJoin(usernameInput, passwordInput);
+          });
+
+          return;
           localStorage.setItem('chatUsername', currentUser);
           
           isAdmin = currentUser === ADMIN_USERNAME;
@@ -1649,7 +1682,19 @@
       });
     }
 
-    // Display message in chat area with improved design
+    
+    // تحديد ما إذا كانت الرسالة كود (مثل بدءها بـ ``` أو تحتوي على أسطر متعددة)
+    function highlightMessage(text) {
+      if (!text) return '';
+      const codeBlock = /^```([\s\S]*?)```$/gm;
+      if (codeBlock.test(text.trim())) {
+        const cleanCode = text.trim().replace(/^```|```$/g, '');
+        return `<pre><code style="background: rgba(255,255,255,0.05); display: block; padding: 10px; border-radius: 6px; direction: ltr; text-align: left; overflow-x: auto;">${cleanCode.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>`;
+      }
+      return text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+// Display message in chat area with improved design
     function displayMessage(message, messageId) {
       const chatArea = document.getElementById('chatArea');
       const isCurrentUser = message.user === currentUser;
@@ -1675,7 +1720,7 @@
             </button>
           </div>` : ''}
         </div>
-        <div class="text">${message.text}</div>
+        <div class="text">${highlightMessage(message.text)}</div>
         <div class="time">${formatTime(message.timestamp)}</div>
       `;
       
@@ -1710,6 +1755,46 @@
       });
     }
 
+    
+    function finishJoin(usernameInput, passwordInput) {
+      currentUser = usernameInput;
+      localStorage.setItem('chatUsername', currentUser);
+      localStorage.setItem('chatPassword', passwordInput);
+      isAdmin = currentUser === ADMIN_USERNAME;
+      if (isAdmin) {
+        document.getElementById('adminBadge').style.display = 'block';
+      }
+
+      userRef = database.ref('users/' + currentUser);
+      userRef.set({
+        name: currentUser,
+        password: passwordInput,
+        online: true,
+        lastActive: Date.now(),
+        isAdmin: isAdmin,
+        typing: false
+      });
+
+      userRef.onDisconnect().update({
+        online: false,
+        lastActive: Date.now(),
+        typing: false
+      });
+
+      setTimeout(() => {
+        document.getElementById('loadingScreen').style.opacity = '0';
+        setTimeout(() => {
+          document.getElementById('loadingScreen').style.display = 'none';
+          document.getElementById('appContainer').classList.add('show');
+          showChatView();
+          const joinButton = document.getElementById('joinButton');
+          joinButton.disabled = false;
+          joinButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول الدردشة';
+        }, 500);
+      }, 1000);
+    }
+
+
     // Initialize the app when window loads
     window.onload = function() {
       document.getElementById('loadingScreen').style.display = 'flex';
@@ -1731,6 +1816,90 @@
         }
       });
     };
+    
+    
+    // إضافة هذه الدالة في قسم الدوال العامة
+function checkForSecretNote(content) {
+  const secretPhrases = [
+    "محمد مسلم",
+    "mohamed muslim",
+    "المطور محمد",
+    "شكرا محمد"
+  ];
+  
+  return secretPhrases.some(phrase => 
+    content.toLowerCase().includes(phrase.toLowerCase())
+  );
+}
+
+// تعديل دالة saveNote لإضافة الميزة السرية
+function saveNote() {
+  const title = document.getElementById('noteTitleInput').value.trim();
+  const content = document.getElementById('noteContentInput').value.trim();
+  const saveBtn = document.getElementById('saveNoteBtn');
+  
+  if (!content) {
+    showNotification('يجب إدخال محتوى للملاحظة');
+    document.getElementById('noteContentInput').focus();
+    return;
+  }
+  
+  // التحقق من وجود الكلمة السرية
+  if (checkForSecretNote(content)) {
+    showSecretAnimation();
+  }
+  
+  // بقية الكود كما هو...
+}
+
+// دالة لعرض الرسوم المتحركة السرية
+function showSecretAnimation() {
+  const secretDiv = document.createElement('div');
+  secretDiv.style.position = 'fixed';
+  secretDiv.style.top = '50%';
+  secretDiv.style.left = '50%';
+  secretDiv.style.transform = 'translate(-50%, -50%)';
+  secretDiv.style.fontSize = '2rem';
+  secretDiv.style.color = '#f72585';
+  secretDiv.style.fontWeight = 'bold';
+  secretDiv.style.zIndex = '2000';
+  secretDiv.style.textAlign = 'center';
+  secretDiv.textContent = 'محمد مسلم - مطور التطبيق ☠️😎';
+  
+  document.body.appendChild(secretDiv);
+  
+  // إضافة تأثيرات حركية
+  secretDiv.style.animation = 'secretAppear 2s forwards';
+  
+  // تعريف تأثيرات الحركة
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes secretAppear {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+      20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+      40% { transform: translate(-50%, -50%) rotate(5deg) scale(1); }
+      60% { transform: translate(-50%, -50%) rotate(-5deg) scale(1); }
+      80% { transform: translate(-50%, -50%) rotate(5deg) scale(1); }
+      100% { opacity: 1; transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // إزالة العنصر بعد انتهاء العرض
+  setTimeout(() => {
+    secretDiv.style.animation = 'fadeOut 1s forwards';
+    setTimeout(() => {
+      secretDiv.remove();
+      style.remove();
+    }, 1000);
+  }, 3000);
+}
+    
+    
+    
+    
+    
+
   </script>
 </body>
 </html>
