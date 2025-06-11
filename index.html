@@ -294,6 +294,8 @@
     let messagesRef = null;
     let userButtons = {};
     let partnerStatusRef = null;
+    let presenceInterval = null;
+    let userStatusDatabaseRef = null;
 
     if (currentUser) {
       showChat(currentUser);
@@ -355,11 +357,6 @@
           currentUser = name;
           showChat(name);
           document.getElementById("logoutBtn").style.display = 'block';
-          // Update user status
-          db.ref("users/" + name).update({ 
-            lastSeen: Date.now(),
-            isOnline: true
-          });
         } else {
           alert("البيانات غير صحيحة");
         }
@@ -367,12 +364,22 @@
     }
 
     function logout() {
+      // Clear presence interval if exists
+      if (presenceInterval) {
+        clearInterval(presenceInterval);
+      }
+      
       // Set user as offline before logging out
       if (currentUser) {
         db.ref("users/" + currentUser).update({ 
           isOnline: false,
           lastSeen: Date.now()
         });
+        
+        // Cancel the onDisconnect handler
+        if (userStatusDatabaseRef) {
+          userStatusDatabaseRef.onDisconnect().cancel();
+        }
       }
       
       localStorage.removeItem("username");
@@ -392,24 +399,38 @@
       document.getElementById("userName").innerText = username;
       loadUsers();
       
-      // Update user presence
-      db.ref("users/" + username).update({ 
-        lastSeen: Date.now(),
-        isOnline: true
+      // Set up presence system
+      userStatusDatabaseRef = db.ref("users/" + username);
+      
+      // Update user status to online
+      userStatusDatabaseRef.update({ 
+        isOnline: true,
+        lastSeen: Date.now()
       });
       
-      // Set up presence tracking
-      window.addEventListener('beforeunload', () => {
-        db.ref("users/" + username).update({ 
-          isOnline: false,
+      // Set up onDisconnect to mark user as offline when connection drops
+      userStatusDatabaseRef.onDisconnect().update({
+        isOnline: false,
+        lastSeen: Date.now()
+      });
+      
+      // Update lastSeen periodically while user is active
+      presenceInterval = setInterval(() => {
+        userStatusDatabaseRef.update({ 
           lastSeen: Date.now()
         });
+      }, 20000); // Update every 20 seconds
+      
+      // Clear interval when user logs out or page unloads
+      window.addEventListener('beforeunload', () => {
+        clearInterval(presenceInterval);
       });
     }
 
     function loadUsers() {
       const userListDiv = document.getElementById("usersList");
       userListDiv.innerHTML = "<h3 style='grid-column: 1/-1'>المستخدمون المتاحون:</h3>";
+      
       db.ref("users").on("value", snap => {
         userListDiv.innerHTML = "<h3 style='grid-column: 1/-1'>المستخدمون المتاحون:</h3>";
         snap.forEach(userSnap => {
@@ -429,11 +450,13 @@
             
             // Update user status
             const userData = userSnap.val();
-            const isOnline = userData.isOnline && (Date.now() - (userData.lastSeen || 0)) < 300000; // 5 minutes
+            const isOnline = userData.isOnline && (Date.now() - (userData.lastSeen || 0)) < 30000; // 30 seconds threshold
+            
+            // Update button appearance based on status
             userButtons[name].style.opacity = isOnline ? '1' : '0.7';
             userButtons[name].title = isOnline ? 'متصل الآن' : `آخر ظهور: ${formatTime(userData.lastSeen)}`;
             
-            // Add online indicator
+            // Add or update online indicator
             let statusDot = userButtons[name].querySelector('.status-dot');
             if (!statusDot) {
               statusDot = document.createElement('span');
@@ -480,7 +503,7 @@
       partnerStatusRef.on("value", snap => {
         if (snap.exists()) {
           const userData = snap.val();
-          const isOnline = userData.isOnline && (Date.now() - (userData.lastSeen || 0)) < 300000;
+          const isOnline = userData.isOnline && (Date.now() - (userData.lastSeen || 0)) < 30000; // 30 seconds threshold
           const statusDot = document.getElementById("partnerStatus");
           statusDot.className = 'status-dot ' + (isOnline ? '' : 'offline');
           statusDot.title = isOnline ? 'متصل الآن' : `آخر ظهور: ${formatTime(userData.lastSeen)}`;
