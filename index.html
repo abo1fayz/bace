@@ -1,279 +1,796 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar" dir="rtl">
 <head>
-  <title>محادثة متجاوبة</title>
+  <title>دردشة فائقة الجمال</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-  --primary-color: #229ED9; /* أزرق تليجرام */
-  --primary-dark: #1b8bbd;
-  --error-color: #f44336;
-  --error-dark: #d32f2f;
-  --text-color: #2a2a2a;
-  --light-bg: #e8f0f9;
-  --white: #ffffff;
-  --message-self: #dcf8c6;   /* لون رسائل المرسل */
-  --message-other: #ffffff;  /* لون رسائل الطرف الآخر */
-}
+      --primary-color: #6C63FF;
+      --primary-dark: #564FC9;
+      --secondary-color: #FF6584;
+      --accent-color: #42E2B8;
+      --error-color: #FF4D4D;
+      --error-dark: #E04545;
+      --text-color: #2D3748;
+      --text-light: #718096;
+      --light-bg: #F8FAFC;
+      --white: #FFFFFF;
+      --message-self: #EFF6FF;
+      --message-other: #FFFFFF;
+      --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--light-bg);
-  color: var(--text-color);
-  padding: 15px;
-}
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);
+      color: var(--text-color);
+      min-height: 100vh;
+      padding: 20px;
+      line-height: 1.6;
+    }
 
-.container {
-  display: flex;
-  flex-direction: column;
-  max-width: 1000px;
-  margin: auto;
-  border-radius: 10px;
-}
+    .container {
+      display: flex;
+      flex-direction: column;
+      max-width: 1200px;
+      margin: 0 auto;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+      background-color: var(--white);
+      height: calc(100vh - 40px);
+    }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--white);
-  padding: 15px 20px;
-  border-radius: 12px;
-  margin-bottom: 15px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+      padding: 20px 30px;
+      color: var(--white);
+    }
 
-h1 {
-  font-size: 1.5em;
-  color: var(--primary-dark);
-}
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin: 0;
+    }
 
-.logout-btn {
-  background: var(--error-color);
-  color: var(--white);
-  border-radius: 8px;
-  padding: 10px 15px;
-}
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-.logout-btn:hover {
-  background: var(--error-dark);
-}
+    .logo i {
+      font-size: 1.5rem;
+    }
 
-#register, #login, #chat {
-  background: var(--white);
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  margin-bottom: 20px;
-}
+    .btn {
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-input, textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 1em;
-  margin-bottom: 10px;
-}
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: var(--white);
+    }
 
-button {
-  padding: 12px 20px;
-  background: var(--primary-color);
-  color: var(--white);
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.3s;
-}
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(108, 99, 255, 0.3);
+    }
 
-button:hover {
-  background: var(--primary-dark);
-}
+    .btn-secondary {
+      background-color: var(--secondary-color);
+      color: var(--white);
+    }
 
-#usersList {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 400px;
-  overflow-y: auto;
-  margin-top: 10px;
-  padding-right: 5px;
-}
+    .btn-secondary:hover {
+      background-color: #E55A75;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 101, 132, 0.3);
+    }
 
-.user-button {
-  background: transparent;
-  border: none;
-  padding: 10px;
-  text-align: left;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: background 0.3s;
-  cursor: pointer;
-}
+    .btn-accent {
+      background-color: var(--accent-color);
+      color: var(--text-color);
+    }
 
-.user-button:hover {
-  background: #f0f0f0;
-}
+    .btn-accent:hover {
+      background-color: #38C9A8;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(66, 226, 184, 0.3);
+    }
 
-.user-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--primary-color);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-}
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--primary-color);
+      color: var(--primary-color);
+    }
 
-.active-chat {
-  background-color: #d0eafc !important;
-}
+    .btn-outline:hover {
+      background-color: var(--primary-color);
+      color: var(--white);
+    }
 
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #4CAF50;
-  display: inline-block;
-  margin-left: 5px;
-}
+    .logout-btn {
+      background-color: var(--error-color);
+      color: var(--white);
+    }
 
-.status-dot.offline {
-  background-color: #ccc;
-}
+    .logout-btn:hover {
+      background-color: var(--error-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 77, 77, 0.3);
+    }
 
-#chatArea h3 {
-  margin-bottom: 10px;
-}
+    .auth-container {
+      display: flex;
+      min-height: 500px;
+    }
 
-#messages {
-  background: #fefefe;
-  padding: 15px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-  height: 55vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 15px;
-}
+    .auth-illustration {
+      flex: 1;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+      color: var(--white);
+      text-align: center;
+    }
 
-.message {
-  max-width: 70%;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 0.95em;
-  position: relative;
-  word-wrap: break-word;
-}
+    .auth-illustration img {
+      max-width: 80%;
+      margin-bottom: 30px;
+    }
 
-.message.self {
-  background: var(--message-self);
-  align-self: flex-end;
-  border-bottom-right-radius: 4px;
-}
+    .auth-illustration h2 {
+      font-size: 2rem;
+      margin-bottom: 15px;
+    }
 
-.message.other {
-  background: var(--message-other);
-  align-self: flex-start;
-  border-bottom-left-radius: 4px;
-}
+    .auth-illustration p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
 
-.message-time {
-  display: block;
-  margin-top: 4px;
-  font-size: 0.75em;
-  color: #888;
-  text-align: right;
-}
+    .auth-form {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
 
-#messageContainer {
-  display: flex;
-  gap: 10px;
-}
+    .form-title {
+      font-size: 1.8rem;
+      margin-bottom: 30px;
+      color: var(--primary-dark);
+      position: relative;
+    }
 
-#message {
-  flex-grow: 1;
-  resize: none;
-  min-height: 50px;
-}
+    .form-title::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      right: 0;
+      width: 60px;
+      height: 4px;
+      background-color: var(--accent-color);
+      border-radius: 2px;
+    }
 
-.toggle-forms {
-  color: var(--primary-dark);
-  font-weight: bold;
-  text-decoration: none;
-  cursor: pointer;
-}
+    .form-group {
+      margin-bottom: 20px;
+    }
 
-.toggle-forms:hover {
-  text-decoration: underline;
-}
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--text-color);
+    }
 
-@media (max-width: 700px) {
-  #usersList {
-    flex-direction: row;
-    overflow-x: auto;
-  }
+    .form-input {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #E2E8F0;
+      border-radius: 12px;
+      font-size: 1rem;
+      transition: var(--transition);
+      font-family: 'Tajawal', sans-serif;
+    }
 
-  .message {
-    max-width: 90%;
-  }
+    .form-input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+      outline: none;
+    }
 
-  #messageContainer {
-    flex-direction: column;
-  }
+    .form-footer {
+      margin-top: 20px;
+      text-align: center;
+    }
 
-  button {
-    width: 100%;
-  }
-}
+    .toggle-forms {
+      color: var(--primary-color);
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
 
+    .toggle-forms:hover {
+      color: var(--primary-dark);
+      text-decoration: underline;
+    }
+
+    .chat-container {
+      display: flex;
+      height: calc(100% - 80px);
+    }
+
+    .users-sidebar {
+      width: 350px;
+      border-left: 1px solid #EDF2F7;
+      padding: 20px;
+      overflow-y: auto;
+      background-color: var(--white);
+    }
+
+    .users-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .users-title {
+      font-size: 1.3rem;
+      color: var(--primary-dark);
+    }
+
+    .search-box {
+      position: relative;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 15px 12px 40px;
+      border: 2px solid #E2E8F0;
+      border-radius: 12px;
+      font-size: 0.95rem;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-light);
+    }
+
+    .users-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .user-button {
+      background: transparent;
+      border: none;
+      padding: 12px 15px;
+      text-align: right;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      transition: var(--transition);
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .user-button:hover {
+      background-color: #F8FAFC;
+      transform: translateX(-5px);
+    }
+
+    .active-chat {
+      background-color: #EFF6FF !important;
+      box-shadow: inset 3px 0 0 var(--primary-color);
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    .user-info {
+      flex: 1;
+    }
+
+    .user-name {
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .user-status {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: var(--accent-color);
+    }
+
+    .status-dot.offline {
+      background-color: #CBD5E0;
+    }
+
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: #F8FAFC;
+      position: relative;
+    }
+
+    .chat-header {
+      padding: 20px;
+      border-bottom: 1px solid #EDF2F7;
+      background-color: var(--white);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .chat-partner {
+      flex: 1;
+    }
+
+    .chat-partner-name {
+      font-weight: 600;
+      font-size: 1.2rem;
+    }
+
+    .chat-partner-status {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .chat-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-action-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #EDF2F7;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      color: var(--text-light);
+    }
+
+    .chat-action-btn:hover {
+      background-color: #E2E8F0;
+      color: var(--primary-color);
+    }
+
+    .messages-container {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background-image: url('https://transparenttextures.com/patterns/subtle-dots.png');
+      background-color: #F8FAFC;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 15px;
+      border-radius: 18px;
+      position: relative;
+      word-wrap: break-word;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.self {
+      background-color: var(--message-self);
+      align-self: flex-end;
+      border-bottom-right-radius: 5px;
+      margin-left: 20%;
+    }
+
+    .message.other {
+      background-color: var(--message-other);
+      align-self: flex-start;
+      border-bottom-left-radius: 5px;
+      margin-right: 20%;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .message-sender {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--primary-dark);
+    }
+
+    .message-text {
+      margin-bottom: 5px;
+    }
+
+    .message-time {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .message-input-container {
+      padding: 15px;
+      border-top: 1px solid #EDF2F7;
+      background-color: var(--white);
+    }
+
+    .message-input-wrapper {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .message-input {
+      flex: 1;
+      border: 2px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 12px 15px;
+      font-size: 1rem;
+      font-family: 'Tajawal', sans-serif;
+      resize: none;
+      min-height: 50px;
+      max-height: 150px;
+      transition: var(--transition);
+    }
+
+    .message-input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+      outline: none;
+    }
+
+    .send-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      color: var(--white);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .send-btn:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .welcome-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px;
+      height: 100%;
+    }
+
+    .welcome-illustration {
+      max-width: 300px;
+      margin-bottom: 30px;
+    }
+
+    .welcome-title {
+      font-size: 2rem;
+      color: var(--primary-dark);
+      margin-bottom: 15px;
+    }
+
+    .welcome-message {
+      color: var(--text-light);
+      margin-bottom: 30px;
+      max-width: 500px;
+    }
+
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 5px;
+      font-size: 0.8rem;
+      color: var(--text-light);
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--accent-color);
+      border-radius: 50%;
+      animation: typingAnimation 1.4s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typingAnimation {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
+    }
+
+    .no-messages {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-light);
+    }
+
+    .no-messages i {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      color: #CBD5E0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+      .auth-illustration {
+        display: none;
+      }
+      
+      .chat-container {
+        flex-direction: column;
+      }
+      
+      .users-sidebar {
+        width: 100%;
+        border-left: none;
+        border-bottom: 1px solid #EDF2F7;
+        max-height: 300px;
+      }
+      
+      .message {
+        max-width: 85%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        height: auto;
+        min-height: 100vh;
+      }
+      
+      .header {
+        padding: 15px 20px;
+      }
+      
+      .auth-form {
+        padding: 30px 20px;
+      }
+      
+      .chat-header {
+        padding: 15px;
+      }
+      
+      .messages-container {
+        padding: 15px 10px;
+      }
+      
+      .message-input-container {
+        padding: 10px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .message {
+        max-width: 90%;
+      }
+      
+      .message.self {
+        margin-left: 10%;
+      }
+      
+      .message.other {
+        margin-right: 10%;
+      }
+      
+      .send-btn {
+        width: 45px;
+        height: 45px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>مرحباً بك في الدردشة</h1>
-      <button id="logoutBtn" class="logout-btn" onclick="logout()" style="display: none;">تسجيل الخروج</button>
+      <div class="logo">
+        <i class="fas fa-comments"></i>
+        <h1>دردشة فائقة الجمال</h1>
+      </div>
+      <button id="logoutBtn" class="btn logout-btn" onclick="logout()" style="display: none;">
+        <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+      </button>
     </div>
 
-    <div id="register">
-      <h2>تسجيل مستخدم جديد</h2>
-      <input type="text" id="regName" placeholder="اسم المستخدم" required>
-      <input type="password" id="regPass" placeholder="كلمة السر" required>
-      <button onclick="register()">تسجيل</button>
-      <p>لديك حساب بالفعل؟ <a class="toggle-forms" onclick="showLogin()">سجل دخول</a></p>
+    <div id="register" class="auth-container" style="display: none;">
+      <div class="auth-illustration">
+        <img src="https://cdn-icons-png.flaticon.com/512/2991/2991473.png" alt="تسجيل مستخدم جديد">
+        <h2>انضم إلى مجتمعنا</h2>
+        <p>سجل الآن وابدأ رحلة تواصل مميزة مع أصدقائك</p>
+      </div>
+      <div class="auth-form">
+        <h2 class="form-title">إنشاء حساب جديد</h2>
+        <div class="form-group">
+          <label for="regName" class="form-label">اسم المستخدم</label>
+          <input type="text" id="regName" class="form-input" placeholder="ادخل اسم مستخدمك" required>
+        </div>
+        <div class="form-group">
+          <label for="regPass" class="form-label">كلمة المرور</label>
+          <input type="password" id="regPass" class="form-input" placeholder="ادخل كلمة المرور" required>
+        </div>
+        <button onclick="register()" class="btn btn-primary">
+          <i class="fas fa-user-plus"></i> تسجيل
+        </button>
+        <div class="form-footer">
+          <p>لديك حساب بالفعل؟ <a class="toggle-forms" onclick="showLogin()">سجل دخول</a></p>
+        </div>
+      </div>
     </div>
 
-    <div id="login">
-      <h2>تسجيل الدخول</h2>
-      <input type="text" id="loginName" placeholder="اسم المستخدم" required>
-      <input type="password" id="loginPass" placeholder="كلمة السر" required>
-      <button onclick="login()">دخول</button>
-      <p>ليس لديك حساب؟ <a class="toggle-forms" onclick="showRegister()">سجل الآن</a></p>
+    <div id="login" class="auth-container" style="display: none;">
+      <div class="auth-illustration">
+        <img src="https://cdn-icons-png.flaticon.com/512/2202/2202112.png" alt="تسجيل الدخول">
+        <h2>مرحباً بعودتك</h2>
+        <p>سجل دخولك للتواصل مع أصدقائك</p>
+      </div>
+      <div class="auth-form">
+        <h2 class="form-title">تسجيل الدخول</h2>
+        <div class="form-group">
+          <label for="loginName" class="form-label">اسم المستخدم</label>
+          <input type="text" id="loginName" class="form-input" placeholder="ادخل اسم مستخدمك" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPass" class="form-label">كلمة المرور</label>
+          <input type="password" id="loginPass" class="form-input" placeholder="ادخل كلمة المرور" required>
+        </div>
+        <button onclick="login()" class="btn btn-primary">
+          <i class="fas fa-sign-in-alt"></i> دخول
+        </button>
+        <div class="form-footer">
+          <p>ليس لديك حساب؟ <a class="toggle-forms" onclick="showRegister()">سجل الآن</a></p>
+        </div>
+      </div>
     </div>
 
-    <div id="chat">
-      <h2>مرحبا <span id="userName"></span>!</h2>
-      <div id="usersList"></div>
-      <div id="chatArea" style="display: none;">
-        <h3>محادثة مع: <span id="chatWith"></span> <span id="partnerStatus" class="status-dot offline"></span></h3>
-        <div id="messages"></div>
-        <div id="messageContainer">
-          <textarea id="message" placeholder="اكتب رسالة..." rows="2"></textarea>
-          <button onclick="sendMessage()">إرسال</button>
+    <div id="chat" style="display: none;">
+      <div class="chat-container">
+        <div class="users-sidebar">
+          <div class="users-header">
+            <h3 class="users-title">المستخدمون المتاحون</h3>
+          </div>
+          <div class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" placeholder="ابحث عن مستخدم...">
+          </div>
+          <div id="usersList" class="users-list"></div>
+        </div>
+        <div class="chat-area">
+          <div id="welcomeScreen" class="welcome-screen">
+            
+            <h2 class="welcome-title">مرحباً بك في دردشة فائقة الجمال</h2>
+            <p class="welcome-message">اختر مستخدماً من القائمة لبدء محادثة ممتعة. استمتع بتجربة دردشة سلسة وجميلة!</p>
+          </div>
+          <div id="chatArea" style="display: none;">
+            <div class="chat-header">
+              <div class="user-avatar" id="partnerAvatar"></div>
+              <div class="chat-partner">
+                <div class="chat-partner-name" id="chatWith"></div>
+                <div class="chat-partner-status">
+                  <span id="partnerStatusText"></span>
+                  <span id="partnerStatus" class="status-dot offline"></span>
+                </div>
+              </div>
+              <div class="chat-actions">
+               
+
+                
+              </div>
+            </div>
+            <div id="messages" class="messages-container">
+              <div class="no-messages">
+                <i class="far fa-comment-dots"></i>
+                <p>لا توجد رسائل بعد. ابدأ المحادثة الآن!</p>
+              </div>
+            </div>
+            <div class="message-input-container">
+              <div class="message-input-wrapper">
+                <textarea id="message" class="message-input" placeholder="اكتب رسالتك هنا..." rows="1"></textarea>
+                <button onclick="sendMessage()" class="send-btn">
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -307,18 +824,18 @@ button:hover {
       showChat(currentUser);
       document.getElementById("logoutBtn").style.display = 'block';
     } else {
-      document.getElementById("login").style.display = 'block';
+      document.getElementById("login").style.display = 'flex';
     }
 
     function showRegister() {
       document.getElementById("login").style.display = 'none';
-      document.getElementById("register").style.display = 'block';
+      document.getElementById("register").style.display = 'flex';
       document.getElementById("regName").focus();
     }
 
     function showLogin() {
       document.getElementById("register").style.display = 'none';
-      document.getElementById("login").style.display = 'block';
+      document.getElementById("login").style.display = 'flex';
       document.getElementById("loginName").focus();
     }
 
@@ -392,7 +909,7 @@ button:hover {
       currentUser = null;
       document.getElementById("register").style.display = 'none';
       document.getElementById("chat").style.display = 'none';
-      document.getElementById("login").style.display = 'block';
+      document.getElementById("login").style.display = 'flex';
       document.getElementById("logoutBtn").style.display = 'none';
       if (messagesRef) messagesRef.off();
       if (partnerStatusRef) partnerStatusRef.off();
@@ -402,7 +919,6 @@ button:hover {
       document.getElementById("register").style.display = 'none';
       document.getElementById("login").style.display = 'none';
       document.getElementById("chat").style.display = 'block';
-      document.getElementById("userName").innerText = username;
       loadUsers();
       
       // Set up presence system
@@ -436,15 +952,6 @@ button:hover {
     function loadUsers() {
       const userListDiv = document.getElementById("usersList");
       
-      // إنشاء عنصر العنوان مرة واحدة فقط
-      if (!document.getElementById("usersTitle")) {
-        const titleElement = document.createElement("h3");
-        titleElement.id = "usersTitle";
-        titleElement.style.gridColumn = "1/-1";
-        titleElement.textContent = "المستخدمون المتاحون:";
-        userListDiv.appendChild(titleElement);
-      }
-      
       db.ref("users").on("value", snap => {
         const currentUsers = {};
         
@@ -455,11 +962,17 @@ button:hover {
             
             if (!userButtons[name]) {
               const btn = document.createElement("button");
-              btn.innerHTML = `
-                <div class="user-icon">${name.charAt(0).toUpperCase()}</div>
-                <span>${name}</span>
-              `;
               btn.className = "user-button";
+              btn.innerHTML = `
+                <div class="user-avatar">${name.charAt(0).toUpperCase()}</div>
+                <div class="user-info">
+                  <div class="user-name">${name}</div>
+                  <div class="user-status">
+                    <span class="status-text">غير متصل</span>
+                    <span class="status-dot offline"></span>
+                  </div>
+                </div>
+              `;
               btn.onclick = () => startChat(name);
               userListDiv.appendChild(btn);
               userButtons[name] = btn;
@@ -469,17 +982,12 @@ button:hover {
             const userData = userSnap.val();
             const isOnline = userData.isOnline && (Date.now() - (userData.lastSeen || 0)) < 30000;
             
-            userButtons[name].style.opacity = isOnline ? '1' : '0.7';
-            userButtons[name].title = isOnline ? 'متصل الآن' : `آخر ظهور: ${formatTime(userData.lastSeen)}`;
+            const statusText = isOnline ? 'متصل الآن' : `آخر ظهور: ${formatTime(userData.lastSeen)}`;
+            const statusDot = userButtons[name].querySelector('.status-dot');
+            const statusTextEl = userButtons[name].querySelector('.status-text');
             
-            let statusDot = userButtons[name].querySelector('.status-dot');
-            if (!statusDot) {
-              statusDot = document.createElement('span');
-              statusDot.className = 'status-dot ' + (isOnline ? '' : 'offline');
-              userButtons[name].appendChild(statusDot);
-            } else {
-              statusDot.className = 'status-dot ' + (isOnline ? '' : 'offline');
-            }
+            statusTextEl.textContent = statusText;
+            statusDot.className = 'status-dot ' + (isOnline ? '' : 'offline');
           }
         });
         
@@ -506,7 +1014,9 @@ button:hover {
       
       chatWith = partner;
       document.getElementById("chatWith").innerText = partner;
+      document.getElementById("partnerAvatar").innerText = partner.charAt(0).toUpperCase();
       document.getElementById("messages").innerHTML = '';
+      document.getElementById("welcomeScreen").style.display = 'none';
       document.getElementById("chatArea").style.display = 'block';
       
       // Update partner status
@@ -530,18 +1040,29 @@ button:hover {
           const userData = snap.val();
           const isOnline = userData.isOnline && (Date.now() - (userData.lastSeen || 0)) < 30000;
           const statusDot = document.getElementById("partnerStatus");
+          const statusText = document.getElementById("partnerStatusText");
+          
+          statusText.textContent = isOnline ? 'متصل الآن' : `آخر ظهور: ${formatTime(userData.lastSeen)}`;
           statusDot.className = 'status-dot ' + (isOnline ? '' : 'offline');
-          statusDot.title = isOnline ? 'متصل الآن' : `آخر ظهور: ${formatTime(userData.lastSeen)}`;
         }
       });
     }
     
     function addMessageToChat(sender, text, timestamp) {
+      // Hide "no messages" placeholder if it's the first message
+      const noMessagesEl = document.querySelector('.no-messages');
+      if (noMessagesEl) {
+        noMessagesEl.style.display = 'none';
+      }
+      
       const div = document.createElement("div");
       div.className = 'message ' + (sender === currentUser ? 'self' : 'other');
       div.innerHTML = `
-        <strong>${sender}:</strong> ${text}
-        <span class="message-time">${formatTime(timestamp)}</span>
+        <div class="message-sender">${sender}</div>
+        <div class="message-text">${text}</div>
+        <div class="message-time">
+          <i class="far fa-clock"></i> ${formatTime(timestamp)}
+        </div>
       `;
       document.getElementById("messages").appendChild(div);
       document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
@@ -558,6 +1079,7 @@ button:hover {
           timestamp: timestamp
         });
         document.getElementById("message").value = '';
+        document.getElementById("message").style.height = 'auto';
       }
     }
     
@@ -579,6 +1101,18 @@ button:hover {
     document.getElementById("message").addEventListener('input', function() {
       this.style.height = 'auto';
       this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    // Search functionality
+    document.querySelector('.search-input').addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      Object.entries(userButtons).forEach(([name, button]) => {
+        if (name.toLowerCase().includes(searchTerm)) {
+          button.style.display = 'flex';
+        } else {
+          button.style.display = 'none';
+        }
+      });
     });
   </script>
 </body>
