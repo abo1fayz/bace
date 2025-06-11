@@ -429,13 +429,24 @@
 
     function loadUsers() {
       const userListDiv = document.getElementById("usersList");
-      userListDiv.innerHTML = "<h3 style='grid-column: 1/-1'>المستخدمون المتاحون:</h3>";
+      
+      // إنشاء عنصر العنوان مرة واحدة فقط
+      if (!document.getElementById("usersTitle")) {
+        const titleElement = document.createElement("h3");
+        titleElement.id = "usersTitle";
+        titleElement.style.gridColumn = "1/-1";
+        titleElement.textContent = "المستخدمون المتاحون:";
+        userListDiv.appendChild(titleElement);
+      }
       
       db.ref("users").on("value", snap => {
-        userListDiv.innerHTML = "<h3 style='grid-column: 1/-1'>المستخدمون المتاحون:</h3>";
+        const currentUsers = {};
+        
         snap.forEach(userSnap => {
           const name = userSnap.key;
           if (name !== currentUser) {
+            currentUsers[name] = true;
+            
             if (!userButtons[name]) {
               const btn = document.createElement("button");
               btn.innerHTML = `
@@ -448,15 +459,13 @@
               userButtons[name] = btn;
             }
             
-            // Update user status
+            // تحديث حالة المستخدم
             const userData = userSnap.val();
-            const isOnline = userData.isOnline && (Date.now() - (userData.lastSeen || 0)) < 30000; // 30 seconds threshold
+            const isOnline = userData.isOnline && (Date.now() - (userData.lastSeen || 0)) < 30000;
             
-            // Update button appearance based on status
             userButtons[name].style.opacity = isOnline ? '1' : '0.7';
             userButtons[name].title = isOnline ? 'متصل الآن' : `آخر ظهور: ${formatTime(userData.lastSeen)}`;
             
-            // Add or update online indicator
             let statusDot = userButtons[name].querySelector('.status-dot');
             if (!statusDot) {
               statusDot = document.createElement('span');
@@ -465,6 +474,16 @@
             } else {
               statusDot.className = 'status-dot ' + (isOnline ? '' : 'offline');
             }
+          }
+        });
+        
+        // إزالة المستخدمين الذين لم يعودوا موجودين
+        Object.keys(userButtons).forEach(name => {
+          if (!currentUsers[name] && name !== currentUser) {
+            if (userButtons[name].parentNode) {
+              userButtons[name].parentNode.removeChild(userButtons[name]);
+            }
+            delete userButtons[name];
           }
         });
       });
@@ -503,7 +522,7 @@
       partnerStatusRef.on("value", snap => {
         if (snap.exists()) {
           const userData = snap.val();
-          const isOnline = userData.isOnline && (Date.now() - (userData.lastSeen || 0)) < 30000; // 30 seconds threshold
+          const isOnline = userData.isOnline && (Date.now() - (userData.lastSeen || 0)) < 30000;
           const statusDot = document.getElementById("partnerStatus");
           statusDot.className = 'status-dot ' + (isOnline ? '' : 'offline');
           statusDot.title = isOnline ? 'متصل الآن' : `آخر ظهور: ${formatTime(userData.lastSeen)}`;
