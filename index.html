@@ -678,6 +678,7 @@
 
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCPaUeP9Xuc1UyjnQ5Kg3tGu6Gkm_peJ1U",
@@ -689,8 +690,9 @@
       appId: "1:452320470709:web:3d8a11a529773ed64300fc"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    firebase.auth();
 
     let currentUser = localStorage.getItem("username");
     let chatWith = null;
@@ -969,32 +971,46 @@
     }
 
     function sendPrivateMessage() {
-      const msg = document.getElementById("privateMessage").value.trim();
-      if (msg && chatWith) {
-        const chatId = currentUser < chatWith ? `${currentUser}_${chatWith}` : `${chatWith}_${currentUser}`;
-        const timestamp = Date.now();
-        db.ref("messages/private/" + chatId).push({ 
-          sender: currentUser, 
-          text: msg,
-          timestamp: timestamp
-        });
-        document.getElementById("privateMessage").value = '';
-        document.getElementById("privateMessage").style.height = 'auto';
-      }
+      db.ref("bannedUsers/" + currentUser).once("value", banSnap => {
+        if (banSnap.exists()) {
+          alert("لقد تم حظرك ولا يمكنك إرسال رسائل.");
+          return;
+        }
+
+        const msg = document.getElementById("privateMessage").value.trim();
+        if (msg && chatWith) {
+          const chatId = currentUser < chatWith ? `${currentUser}_${chatWith}` : `${chatWith}_${currentUser}`;
+          const timestamp = Date.now();
+          db.ref("messages/private/" + chatId).push({ 
+            sender: currentUser, 
+            text: msg,
+            timestamp: timestamp
+          });
+          document.getElementById("privateMessage").value = '';
+          document.getElementById("privateMessage").style.height = 'auto';
+        }
+      }); // end banSnap
     }
     
     function sendGroupMessage() {
-      const msg = document.getElementById("groupMessage").value.trim();
-      if (msg) {
-        const timestamp = Date.now();
-        db.ref("messages/group").push({ 
-          sender: currentUser, 
-          text: msg,
-          timestamp: timestamp
-        });
-        document.getElementById("groupMessage").value = '';
-        document.getElementById("groupMessage").style.height = 'auto';
-      }
+      db.ref("bannedUsers/" + currentUser).once("value", banSnap => {
+        if (banSnap.exists()) {
+          alert("لقد تم حظرك ولا يمكنك إرسال رسائل.");
+          return;
+        }
+
+        const msg = document.getElementById("groupMessage").value.trim();
+        if (msg) {
+          const timestamp = Date.now();
+          db.ref("messages/group").push({ 
+            sender: currentUser, 
+            text: msg,
+            timestamp: timestamp
+          });
+          document.getElementById("groupMessage").value = '';
+          document.getElementById("groupMessage").style.height = 'auto';
+        }
+      }); // end banSnap
     }
     
     function formatTime(timestamp) {
