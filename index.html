@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>محادثة متجاوبة - تصميم مضغوط</title>
+  <title>محادثة متجاوبة - تصميم جديد</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -17,10 +17,11 @@
       --white: #ffffff;
       --message-self: #5b67ff;
       --message-other: #f0f2f5;
-      --border-radius: 12px;
-      --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      --transition: all 0.2s ease;
-      --card-bg: rgba(255, 255, 255, 0.98);
+      --border-radius: 16px;
+      --box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --card-bg: rgba(255, 255, 255, 0.92);
+      --gradient: linear-gradient(135deg, #5b67ff, #9b6bff);
     }
     
     * {
@@ -31,62 +32,83 @@
     
     body { 
       font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      padding: 10px; 
+      
       background-color: var(--light-bg);
       color: var(--text-color);
-      line-height: 1.5;
+      line-height: 1.6;
       direction: rtl;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
+      background-image: radial-gradient(circle at top right, #eef0ff 0%, #f9fafb 100%);
+      min-height: 100vh;
     }
     
     .container {
-      max-width: 100%;
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 0;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
+      padding: 0 15px;
     }
     
     #chat, #login, #register { 
       display: none; 
-      flex: 1;
+      margin-top: 30px; 
       background: var(--card-bg);
-      padding: 15px;
+      padding: 30px;
       border-radius: var(--border-radius);
       box-shadow: var(--box-shadow);
       width: 100%;
-      height: 100%;
-      border: 1px solid rgba(0,0,0,0.05);
+      animation: fadeIn 0.5s ease-out;
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.7);
     }
     
-    .message { 
-      margin: 8px 0; 
-      padding: 10px 14px;
-      border-radius: var(--border-radius);
-      max-width: 85%;
-      word-wrap: break-word;
-      font-size: 0.95em;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .message {
+  margin: 14px 0;
+  padding: 14px 20px;
+  border-radius: 16px;
+  max-width: 80%;
+  word-wrap: break-word;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+  transition: all 0.3s ease;
+  position: relative;
+  border: 1px solid rgba(0,0,0,0.05);
+  background-color: #f9f9f9; /* خلفية فاتحة */
+}
+    
+    .message::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: rgba(255,255,255,0.3);
     }
     
     .message.self {
-      background: var(--message-self);
+      background: var(--gradient);
       color: var(--white);
       margin-left: auto;
+      border-bottom-right-radius: 5px;
+      box-shadow: 0 4px 12px rgba(91, 103, 255, 0.2);
     }
     
     .message.other {
       background: var(--message-other);
       margin-right: auto;
+      border-bottom-left-radius: 5px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     }
     
     .message-time {
-      font-size: 0.7em;
+      font-size: 0.75em;
       color: rgba(255,255,255,0.8);
       display: block;
-      margin-top: 4px;
+      margin-top: 8px;
+      text-align: left;
     }
     
     .message.other .message-time {
@@ -94,90 +116,156 @@
     }
     
     #usersList { 
+      margin-top: 25px; 
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 10px;
-      margin-top: 15px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 18px;
     }
     
     .user-button { 
       cursor: pointer; 
-      padding: 10px 12px; 
+      padding: 14px 20px; 
       background: var(--white); 
+      color: var(--text-color);
+      border: 1px solid rgba(0,0,0,0.05);
       border-radius: var(--border-radius);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 14px;
       transition: var(--transition);
-      font-size: 0.9em;
-      border: 1px solid rgba(0,0,0,0.05);
+      font-size: 0.95em;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+      text-align: right;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .user-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--primary-color);
+      opacity: 0;
+      transition: var(--transition);
     }
     
     .user-button:hover { 
       background: var(--primary-light);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(91, 103, 255, 0.15);
+    }
+    
+    .user-button:hover::before {
+      opacity: 1;
     }
     
     .user-icon {
-      width: 30px;
-      height: 30px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary-color), #9b6bff);
+      background: var(--gradient);
       color: var(--white);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      font-size: 1em;
+      flex-shrink: 0;
+      font-size: 1.2em;
+      box-shadow: 0 4px 8px rgba(91, 103, 255, 0.2);
     }
     
     input, textarea {
-      padding: 12px 14px;
+      padding: 16px 18px;
       border: 1px solid rgba(0,0,0,0.1);
       border-radius: var(--border-radius);
       width: 100%;
-      margin-bottom: 12px;
+      margin-bottom: 18px;
       font-family: inherit;
       resize: none;
       transition: var(--transition);
-      background: rgba(255,255,255,0.9);
-      font-size: 0.95em;
+      background: rgba(255,255,255,0.8);
+      font-size: 1em;
+    }
+    
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(91, 103, 255, 0.15);
+      background: var(--white);
     }
     
     button {
-      padding: 12px 18px;
-      background: linear-gradient(135deg, var(--primary-color), #9b6bff);
+      padding: 15px 28px;
+      background: var(--gradient);
       color: var(--white);
       border: none;
       border-radius: var(--border-radius);
       cursor: pointer;
       transition: var(--transition);
       font-weight: bold;
-      font-size: 0.95em;
+      font-size: 1em;
+      box-shadow: 0 4px 12px rgba(91, 103, 255, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    button::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: rgba(255,255,255,0.2);
+      transform: rotate(30deg) translate(-5px, -100px);
+      transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    
+    button:hover {
+      background: linear-gradient(135deg, #4a55e6, #8a55ff);
+      box-shadow: 0 6px 16px rgba(91, 103, 255, 0.35);
+      transform: translateY(-3px);
+    }
+    
+    button:hover::after {
+      transform: rotate(30deg) translate(0, 150px);
     }
     
     #messageContainer {
       display: flex;
-      gap: 10px;
-      margin-top: 15px;
+      gap: 16px;
+      margin-top: 28px;
       align-items: flex-end;
+      background: var(--white);
+      border-radius: var(--border-radius);
+      padding: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
     
     #message {
       flex-grow: 1;
-      min-height: 50px;
-      max-height: 100px;
-      padding: 12px 14px;
+      min-height: 70px;
+      max-height: 140px;
+      padding: 16px 18px;
+      line-height: 1.5;
+      border: none;
+      background: transparent;
+      margin-bottom: 0;
+      box-shadow: none;
     }
     
     #messages {
-      flex: 1;
+      height: 60vh;
       overflow-y: auto;
-      padding: 10px;
-      margin-bottom: 15px;
+      padding: 20px;
+      border-radius: var(--border-radius);
+      margin-bottom: 25px;
       display: flex;
       flex-direction: column;
-      background: rgba(255,255,255,0.7);
-      border-radius: var(--border-radius);
+      background: rgba(255,255,255,0.6);
       border: 1px solid rgba(0,0,0,0.05);
     }
     
@@ -185,54 +273,93 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 15px;
-      padding-bottom: 10px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding: 20px 0;
       border-bottom: 1px solid rgba(0,0,0,0.05);
     }
     
     h1, h2, h3 {
-      font-weight: 700;
+      font-weight: 800;
+      letter-spacing: -0.5px;
     }
     
     h1 {
-      font-size: 1.6em;
+      font-size: 2.4em;
       background: linear-gradient(45deg, var(--primary-dark), var(--primary-color));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     
     h2 {
-      font-size: 1.3em;
-      margin-bottom: 12px;
+      font-size: 1.8em;
+      margin-bottom: 20px;
+      color: var(--primary-dark);
     }
     
     h3 {
-      font-size: 1.1em;
-      margin-bottom: 10px;
+      font-size: 1.4em;
+      margin-bottom: 18px;
+      color: var(--text-color);
     }
     
     .logout-btn {
       background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
-      padding: 10px 16px;
-      font-size: 0.9em;
+      padding: 14px 28px;
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.25);
+    }
+    
+    .logout-btn:hover {
+      background: linear-gradient(135deg, var(--secondary-dark), #d54a4a);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(255, 107, 107, 0.35);
     }
     
     .active-chat {
       background: var(--primary-light) !important;
       border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--primary-color);
+      transform: translateY(-2px);
     }
     
     .status-dot {
-      width: 10px;
-      height: 10px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       background-color: #4cc9f0;
       display: inline-block;
-      margin-left: 6px;
+      margin-left: 10px;
+      box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.3);
+      position: relative;
+    }
+    
+    .status-dot::after {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: -4px;
+      right: -4px;
+      bottom: -4px;
+      border-radius: 50%;
+      background: rgba(76, 201, 240, 0.2);
+      animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(0.8); opacity: 0.7; }
+      50% { transform: scale(1.2); opacity: 0.3; }
+      100% { transform: scale(0.8); opacity: 0.7; }
     }
     
     .offline {
       background-color: #adb5bd;
+      box-shadow: none;
+    }
+    
+    .offline::after {
+      display: none;
     }
     
     .toggle-forms {
@@ -240,61 +367,155 @@
       text-decoration: none;
       font-weight: bold;
       cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+    }
+    
+    .toggle-forms::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      right: 0;
+      width: 0;
+      height: 2px;
+      background: var(--primary-color);
+      transition: var(--transition);
+    }
+    
+    .toggle-forms:hover {
+      color: var(--primary-dark);
+    }
+    
+    .toggle-forms:hover::after {
+      width: 100%;
     }
     
     /* Scrollbar styling */
     ::-webkit-scrollbar {
-      width: 6px;
+      width: 10px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.03);
+      border-radius: 4px;
     }
     
     ::-webkit-scrollbar-thumb {
       background: var(--primary-color);
-      border-radius: 3px;
+      border-radius: 4px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-dark);
     }
     
     /* Responsive design */
     @media (max-width: 768px) {
+      .container {
+        padding: 0 3px;
+      }
+      
       #usersList {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
       }
       
       .message {
-        max-width: 90%;
+        max-width: 100%;
       }
       
       h1 {
-        font-size: 1.4em;
+        font-size: 1.8em;
+      }
+      
+      h2 {
+        font-size: 1.5em;
       }
     }
     
     @media (max-width: 480px) {
       body {
-        padding: 8px;
+        padding: 1px;
       }
       
       #chat, #login, #register {
-        padding: 12px;
+        padding: 2px 6px;
       }
       
       #usersList {
         grid-template-columns: 1fr;
       }
       
-      .user-button {
-        padding: 8px 10px;
-      }
-      
       #messageContainer {
         flex-direction: column;
+        
       }
       
       button {
         width: 100%;
       }
+      
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .logout-btn {
+        align-self: flex-end;
+      }
+    }
+    
+    /* Animation for new messages */
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .message {
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    /* Floating animation for header */
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    h1 {
+      animation: float 4s ease-in-out infinite;
+    }
+    
+    /* Decorative elements */
+    .decoration {
+      position: fixed;
+      z-index: -1;
+      border-radius: 50%;
+      opacity: 0.1;
+    }
+    
+    .dec-1 {
+      width: 300px;
+      height: 300px;
+      background: var(--primary-color);
+      top: -150px;
+      right: -150px;
+    }
+    
+    .dec-2 {
+      width: 200px;
+      height: 200px;
+      background: var(--secondary-color);
+      bottom: -100px;
+      left: -100px;
     }
   </style>
 </head>
 <body>
+  <div class="decoration dec-1"></div>
+  <div class="decoration dec-2"></div>
+  
   <div class="container">
     <div class="header">
       <h1>مرحباً بك في الدردشة</h1>
@@ -318,13 +539,10 @@
     </div>
 
     <div id="chat">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h2 style="margin: 0;">مرحبا <span id="userName"></span>!</h2>
-        <div id="usersTitle" style="font-size: 0.9em; color: #666;">المستخدمون المتاحون:</div>
-      </div>
+      <h2>مرحبا <span id="userName"></span>!</h2>
       <div id="usersList"></div>
-      <div id="chatArea" style="display: none; flex: 1; display: flex; flex-direction: column;">
-        <h3 style="margin: 8px 0;">محادثة مع: <span id="chatWith"></span> <span id="partnerStatus" class="status-dot offline"></span></h3>
+      <div id="chatArea" style="display: none;">
+        <h3>محادثة مع: <span id="chatWith"></span> <span id="partnerStatus" class="status-dot offline"></span></h3>
         <div id="messages"></div>
         <div id="messageContainer">
           <textarea id="message" placeholder="اكتب رسالة..." rows="2"></textarea>
@@ -337,7 +555,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script>
-    // كود الجافاسكريبت يبقى كما هو بدون تغيير
     const firebaseConfig = {
       apiKey: "AIzaSyCPaUeP9Xuc1UyjnQ5Kg3tGu6Gkm_peJ1U",
       authDomain: "chat-375e0.firebaseapp.com",
@@ -426,16 +643,19 @@
     }
 
     function logout() {
+      // Clear presence interval if exists
       if (presenceInterval) {
         clearInterval(presenceInterval);
       }
       
+      // Set user as offline before logging out
       if (currentUser) {
         db.ref("users/" + currentUser).update({ 
           isOnline: false,
           lastSeen: Date.now()
         });
         
+        // Cancel the onDisconnect handler
         if (userStatusDatabaseRef) {
           userStatusDatabaseRef.onDisconnect().cancel();
         }
@@ -458,23 +678,29 @@
       document.getElementById("userName").innerText = username;
       loadUsers();
       
+      // Set up presence system
       userStatusDatabaseRef = db.ref("users/" + username);
+      
+      // Update user status to online
       userStatusDatabaseRef.update({ 
         isOnline: true,
         lastSeen: Date.now()
       });
       
+      // Set up onDisconnect to mark user as offline when connection drops
       userStatusDatabaseRef.onDisconnect().update({
         isOnline: false,
         lastSeen: Date.now()
       });
       
+      // Update lastSeen periodically while user is active
       presenceInterval = setInterval(() => {
         userStatusDatabaseRef.update({ 
           lastSeen: Date.now()
         });
-      }, 20000);
+      }, 20000); // Update every 20 seconds
       
+      // Clear interval when user logs out or page unloads
       window.addEventListener('beforeunload', () => {
         clearInterval(presenceInterval);
       });
@@ -482,6 +708,15 @@
 
     function loadUsers() {
       const userListDiv = document.getElementById("usersList");
+      
+      // إنشاء عنصر العنوان مرة واحدة فقط
+      if (!document.getElementById("usersTitle")) {
+        const titleElement = document.createElement("h3");
+        titleElement.id = "usersTitle";
+        titleElement.style.gridColumn = "1/-1";
+        titleElement.textContent = "المستخدمون المتاحون:";
+        userListDiv.appendChild(titleElement);
+      }
       
       db.ref("users").on("value", snap => {
         const currentUsers = {};
@@ -503,6 +738,7 @@
               userButtons[name] = btn;
             }
             
+            // تحديث حالة المستخدم
             const userData = userSnap.val();
             const isOnline = userData.isOnline && (Date.now() - (userData.lastSeen || 0)) < 30000;
             
@@ -520,6 +756,7 @@
           }
         });
         
+        // إزالة المستخدمين الذين لم يعودوا موجودين
         Object.keys(userButtons).forEach(name => {
           if (!currentUsers[name] && name !== currentUser) {
             if (userButtons[name].parentNode) {
@@ -532,6 +769,7 @@
     }
 
     function startChat(partner) {
+      // Highlight active chat button
       Object.values(userButtons).forEach(btn => {
         btn.classList.remove('active-chat');
       });
@@ -542,8 +780,9 @@
       chatWith = partner;
       document.getElementById("chatWith").innerText = partner;
       document.getElementById("messages").innerHTML = '';
-      document.getElementById("chatArea").style.display = 'flex';
+      document.getElementById("chatArea").style.display = 'block';
       
+      // Update partner status
       updatePartnerStatus(partner);
       
       const chatId = currentUser < partner ? `${currentUser}_${partner}` : `${partner}_${currentUser}`;
@@ -602,6 +841,7 @@
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
     
+    // Handle Enter key for sending messages (but allow Shift+Enter for new line)
     document.getElementById("message").addEventListener('keydown', function(e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -609,6 +849,7 @@
       }
     });
     
+    // Auto-resize textarea as user types
     document.getElementById("message").addEventListener('input', function() {
       this.style.height = 'auto';
       this.style.height = (this.scrollHeight) + 'px';
