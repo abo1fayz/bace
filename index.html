@@ -17,6 +17,7 @@
       --white: #ffffff;
       --message-self: #5b67ff;
       --message-other: #f0f2f5;
+      --message-group: #e6f7ff;
       --border-radius: 16px;
       --box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
       --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -32,26 +33,26 @@
     
     body { 
       font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      
       background-color: var(--light-bg);
       color: var(--text-color);
       line-height: 1.6;
       direction: rtl;
       background-image: radial-gradient(circle at top right, #eef0ff 0%, #f9fafb 100%);
       min-height: 100vh;
+      padding: 10px;
     }
     
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 0 15px;
+      padding: 0 10px;
     }
     
     #chat, #login, #register { 
       display: none; 
-      margin-top: 30px; 
+      margin-top: 20px; 
       background: var(--card-bg);
-      padding: 30px;
+      padding: 20px;
       border-radius: var(--border-radius);
       box-shadow: var(--box-shadow);
       width: 100%;
@@ -66,26 +67,15 @@
     }
     
     .message {
-  margin: 14px 0;
-  padding: 14px 20px;
-  border-radius: 16px;
-  max-width: 80%;
-  word-wrap: break-word;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.06);
-  transition: all 0.3s ease;
-  position: relative;
-  border: 1px solid rgba(0,0,0,0.05);
-  background-color: #f9f9f9; /* خلفية فاتحة */
-}
-    
-    .message::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: rgba(255,255,255,0.3);
+      margin: 12px 0;
+      padding: 12px 16px;
+      border-radius: 16px;
+      max-width: 80%;
+      word-wrap: break-word;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+      transition: all 0.3s ease;
+      position: relative;
+      border: 1px solid rgba(0,0,0,0.05);
     }
     
     .message.self {
@@ -103,38 +93,47 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     }
     
+    .message.group {
+      background: var(--message-group);
+      margin-right: auto;
+      border-bottom-left-radius: 5px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+      border-left: 4px solid var(--primary-color);
+    }
+    
     .message-time {
-      font-size: 0.75em;
+      font-size: 0.7em;
       color: rgba(255,255,255,0.8);
       display: block;
-      margin-top: 8px;
+      margin-top: 6px;
       text-align: left;
     }
     
-    .message.other .message-time {
+    .message.other .message-time,
+    .message.group .message-time {
       color: rgba(0,0,0,0.5);
     }
     
     #usersList { 
-      margin-top: 25px; 
+      margin-top: 20px; 
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 18px;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px;
     }
     
     .user-button { 
       cursor: pointer; 
-      padding: 14px 20px; 
+      padding: 12px 16px; 
       background: var(--white); 
       color: var(--text-color);
       border: 1px solid rgba(0,0,0,0.05);
       border-radius: var(--border-radius);
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
       transition: var(--transition);
-      font-size: 0.95em;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+      font-size: 0.9em;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.03);
       text-align: right;
       position: relative;
       overflow: hidden;
@@ -154,8 +153,8 @@
     
     .user-button:hover { 
       background: var(--primary-light);
-      transform: translateY(-4px);
-      box-shadow: 0 8px 20px rgba(91, 103, 255, 0.15);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(91, 103, 255, 0.15);
     }
     
     .user-button:hover::before {
@@ -163,8 +162,8 @@
     }
     
     .user-icon {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       background: var(--gradient);
       color: var(--white);
@@ -173,21 +172,25 @@
       justify-content: center;
       font-weight: bold;
       flex-shrink: 0;
-      font-size: 1.2em;
+      font-size: 1.1em;
       box-shadow: 0 4px 8px rgba(91, 103, 255, 0.2);
     }
     
+    .group-icon {
+      background: linear-gradient(135deg, #4cc9f0, #4895ef);
+    }
+    
     input, textarea {
-      padding: 16px 18px;
+      padding: 14px 16px;
       border: 1px solid rgba(0,0,0,0.1);
       border-radius: var(--border-radius);
       width: 100%;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
       font-family: inherit;
       resize: none;
       transition: var(--transition);
       background: rgba(255,255,255,0.8);
-      font-size: 1em;
+      font-size: 0.95em;
     }
     
     input:focus, textarea:focus {
@@ -198,7 +201,7 @@
     }
     
     button {
-      padding: 15px 28px;
+      padding: 14px 24px;
       background: var(--gradient);
       color: var(--white);
       border: none;
@@ -206,7 +209,7 @@
       cursor: pointer;
       transition: var(--transition);
       font-weight: bold;
-      font-size: 1em;
+      font-size: 0.95em;
       box-shadow: 0 4px 12px rgba(91, 103, 255, 0.25);
       position: relative;
       overflow: hidden;
@@ -227,7 +230,7 @@
     button:hover {
       background: linear-gradient(135deg, #4a55e6, #8a55ff);
       box-shadow: 0 6px 16px rgba(91, 103, 255, 0.35);
-      transform: translateY(-3px);
+      transform: translateY(-2px);
     }
     
     button:hover::after {
@@ -236,20 +239,20 @@
     
     #messageContainer {
       display: flex;
-      gap: 16px;
-      margin-top: 28px;
+      gap: 12px;
+      margin-top: 20px;
       align-items: flex-end;
       background: var(--white);
       border-radius: var(--border-radius);
-      padding: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      padding: 6px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
     
     #message {
       flex-grow: 1;
-      min-height: 70px;
-      max-height: 140px;
-      padding: 16px 18px;
+      min-height: 60px;
+      max-height: 120px;
+      padding: 14px 16px;
       line-height: 1.5;
       border: none;
       background: transparent;
@@ -258,11 +261,11 @@
     }
     
     #messages {
-      height: 60vh;
+      height: 55vh;
       overflow-y: auto;
-      padding: 20px;
+      padding: 16px;
       border-radius: var(--border-radius);
-      margin-bottom: 25px;
+      margin-bottom: 20px;
       display: flex;
       flex-direction: column;
       background: rgba(255,255,255,0.6);
@@ -273,10 +276,10 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 30px;
+      margin-bottom: 25px;
       flex-wrap: wrap;
-      gap: 20px;
-      padding: 20px 0;
+      gap: 15px;
+      padding: 15px 0;
       border-bottom: 1px solid rgba(0,0,0,0.05);
     }
     
@@ -286,7 +289,7 @@
     }
     
     h1 {
-      font-size: 2.4em;
+      font-size: 2em;
       background: linear-gradient(45deg, var(--primary-dark), var(--primary-color));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -294,27 +297,27 @@
     }
     
     h2 {
-      font-size: 1.8em;
-      margin-bottom: 20px;
+      font-size: 1.6em;
+      margin-bottom: 18px;
       color: var(--primary-dark);
     }
     
     h3 {
-      font-size: 1.4em;
-      margin-bottom: 18px;
+      font-size: 1.3em;
+      margin-bottom: 16px;
       color: var(--text-color);
     }
     
     .logout-btn {
       background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
-      padding: 14px 28px;
-      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.25);
+      padding: 12px 24px;
+      box-shadow: 0 4px 10px rgba(255, 107, 107, 0.25);
     }
     
     .logout-btn:hover {
       background: linear-gradient(135deg, var(--secondary-dark), #d54a4a);
-      transform: translateY(-3px);
-      box-shadow: 0 6px 16px rgba(255, 107, 107, 0.35);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(255, 107, 107, 0.35);
     }
     
     .active-chat {
@@ -325,23 +328,23 @@
     }
     
     .status-dot {
-      width: 14px;
-      height: 14px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       background-color: #4cc9f0;
       display: inline-block;
-      margin-left: 10px;
-      box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.3);
+      margin-left: 8px;
+      box-shadow: 0 0 0 2px rgba(76, 201, 240, 0.3);
       position: relative;
     }
     
     .status-dot::after {
       content: '';
       position: absolute;
-      top: -4px;
-      left: -4px;
-      right: -4px;
-      bottom: -4px;
+      top: -3px;
+      left: -3px;
+      right: -3px;
+      bottom: -3px;
       border-radius: 50%;
       background: rgba(76, 201, 240, 0.2);
       animation: pulse 1.5s infinite;
@@ -392,7 +395,7 @@
     
     /* Scrollbar styling */
     ::-webkit-scrollbar {
-      width: 10px;
+      width: 8px;
     }
     
     ::-webkit-scrollbar-track {
@@ -414,33 +417,54 @@
     /* Responsive design */
     @media (max-width: 768px) {
       .container {
-        padding: 0 3px;
+        padding: 0 5px;
       }
       
       #usersList {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
       }
       
       .message {
-        max-width: 100%;
+        max-width: 90%;
       }
       
       h1 {
-        font-size: 1.8em;
+        font-size: 1.7em;
       }
       
       h2 {
-        font-size: 1.5em;
+        font-size: 1.4em;
+      }
+      
+      h3 {
+        font-size: 1.2em;
+      }
+      
+      .user-button {
+        padding: 10px 12px;
+        font-size: 0.85em;
+      }
+      
+      .user-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 1em;
+      }
+      
+      #messages {
+        height: 50vh;
       }
     }
     
     @media (max-width: 480px) {
       body {
-        padding: 1px;
+        padding: 5px;
       }
       
       #chat, #login, #register {
-        padding: 2px 6px;
+        padding: 15px;
+        margin-top: 10px;
       }
       
       #usersList {
@@ -449,20 +473,40 @@
       
       #messageContainer {
         flex-direction: column;
-        
       }
       
       button {
         width: 100%;
+        padding: 12px;
       }
       
       .header {
         flex-direction: column;
         align-items: flex-start;
+        margin-bottom: 20px;
       }
       
       .logout-btn {
-        align-self: flex-end;
+        align-self: stretch;
+        text-align: center;
+      }
+      
+      h1 {
+        font-size: 1.5em;
+      }
+      
+      h2 {
+        font-size: 1.3em;
+      }
+      
+      #messages {
+        height: 45vh;
+        padding: 12px;
+      }
+      
+      .message {
+        padding: 10px 14px;
+        font-size: 0.95em;
       }
     }
     
@@ -479,7 +523,7 @@
     /* Floating animation for header */
     @keyframes float {
       0% { transform: translateY(0px); }
-      50% { transform: translateY(-8px); }
+      50% { transform: translateY(-6px); }
       100% { transform: translateY(0px); }
     }
     
@@ -496,19 +540,82 @@
     }
     
     .dec-1 {
-      width: 300px;
-      height: 300px;
+      width: 200px;
+      height: 200px;
       background: var(--primary-color);
-      top: -150px;
-      right: -150px;
+      top: -100px;
+      right: -100px;
     }
     
     .dec-2 {
-      width: 200px;
-      height: 200px;
+      width: 150px;
+      height: 150px;
       background: var(--secondary-color);
-      bottom: -100px;
-      left: -100px;
+      bottom: -75px;
+      left: -75px;
+    }
+    
+    /* Group chat indicator */
+    .group-indicator {
+      display: inline-block;
+      background: #4cc9f0;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.7em;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    
+    /* Tab navigation */
+    .chat-tabs {
+      display: flex;
+      margin-bottom: 15px;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    .chat-tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: var(--transition);
+      font-weight: 500;
+      position: relative;
+    }
+    
+    .chat-tab.active {
+      border-bottom-color: var(--primary-color);
+      color: var(--primary-color);
+    }
+    
+    .chat-tab:after {
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      right: 0;
+      width: 0;
+      height: 3px;
+      background: var(--primary-color);
+      transition: var(--transition);
+    }
+    
+    .chat-tab:hover:after {
+      width: 100%;
+      right: auto;
+      left: 0;
+    }
+    
+    @media (max-width: 480px) {
+      .chat-tabs {
+        justify-content: space-around;
+      }
+      
+      .chat-tab {
+        padding: 8px 10px;
+        font-size: 0.9em;
+        flex: 1;
+        text-align: center;
+      }
     }
   </style>
 </head>
@@ -540,13 +647,30 @@
 
     <div id="chat">
       <h2>مرحبا <span id="userName"></span>!</h2>
-      <div id="usersList"></div>
-      <div id="chatArea" style="display: none;">
-        <h3>محادثة مع: <span id="chatWith"></span> <span id="partnerStatus" class="status-dot offline"></span></h3>
-        <div id="messages"></div>
-        <div id="messageContainer">
-          <textarea id="message" placeholder="اكتب رسالة..." rows="2"></textarea>
-          <button onclick="sendMessage()">إرسال</button>
+      
+      <div class="chat-tabs">
+        <div class="chat-tab active" onclick="showTab('users')">المستخدمون</div>
+        <div class="chat-tab" onclick="showTab('group')">المجموعة العامة</div>
+      </div>
+      
+      <div id="usersTab">
+        <div id="usersList"></div>
+        <div id="privateChatArea" style="display: none;">
+          <h3>محادثة مع: <span id="chatWith"></span> <span id="partnerStatus" class="status-dot offline"></span></h3>
+          <div id="privateMessages"></div>
+          <div id="privateMessageContainer">
+            <textarea id="privateMessage" placeholder="اكتب رسالة..." rows="2"></textarea>
+            <button onclick="sendPrivateMessage()">إرسال</button>
+          </div>
+        </div>
+      </div>
+      
+      <div id="groupTab" style="display: none;">
+        <h3><span class="group-indicator">مجموعة</span>المجموعة العامة</h3>
+        <div id="groupMessages"></div>
+        <div id="groupMessageContainer">
+          <textarea id="groupMessage" placeholder="اكتب رسالة للمجموعة..." rows="2"></textarea>
+          <button onclick="sendGroupMessage()">إرسال للمجموعة</button>
         </div>
       </div>
     </div>
@@ -570,11 +694,13 @@
 
     let currentUser = localStorage.getItem("username");
     let chatWith = null;
-    let messagesRef = null;
+    let privateMessagesRef = null;
+    let groupMessagesRef = null;
     let userButtons = {};
     let partnerStatusRef = null;
     let presenceInterval = null;
     let userStatusDatabaseRef = null;
+    let activeTab = 'users';
 
     if (currentUser) {
       showChat(currentUser);
@@ -667,7 +793,8 @@
       document.getElementById("chat").style.display = 'none';
       document.getElementById("login").style.display = 'block';
       document.getElementById("logoutBtn").style.display = 'none';
-      if (messagesRef) messagesRef.off();
+      if (privateMessagesRef) privateMessagesRef.off();
+      if (groupMessagesRef) groupMessagesRef.off();
       if (partnerStatusRef) partnerStatusRef.off();
     }
 
@@ -677,6 +804,7 @@
       document.getElementById("chat").style.display = 'block';
       document.getElementById("userName").innerText = username;
       loadUsers();
+      loadGroupMessages();
       
       // Set up presence system
       userStatusDatabaseRef = db.ref("users/" + username);
@@ -733,7 +861,7 @@
                 <span>${name}</span>
               `;
               btn.className = "user-button";
-              btn.onclick = () => startChat(name);
+              btn.onclick = () => startPrivateChat(name);
               userListDiv.appendChild(btn);
               userButtons[name] = btn;
             }
@@ -767,8 +895,17 @@
         });
       });
     }
+    
+    function loadGroupMessages() {
+      if (groupMessagesRef) groupMessagesRef.off();
+      groupMessagesRef = db.ref("messages/group");
+      groupMessagesRef.on("child_added", snap => {
+        const msg = snap.val();
+        addMessageToGroupChat(msg.sender, msg.text, msg.timestamp);
+      });
+    }
 
-    function startChat(partner) {
+    function startPrivateChat(partner) {
       // Highlight active chat button
       Object.values(userButtons).forEach(btn => {
         btn.classList.remove('active-chat');
@@ -779,18 +916,18 @@
       
       chatWith = partner;
       document.getElementById("chatWith").innerText = partner;
-      document.getElementById("messages").innerHTML = '';
-      document.getElementById("chatArea").style.display = 'block';
+      document.getElementById("privateMessages").innerHTML = '';
+      document.getElementById("privateChatArea").style.display = 'block';
       
       // Update partner status
       updatePartnerStatus(partner);
       
       const chatId = currentUser < partner ? `${currentUser}_${partner}` : `${partner}_${currentUser}`;
-      if (messagesRef) messagesRef.off();
-      messagesRef = db.ref("messages/" + chatId);
-      messagesRef.on("child_added", snap => {
+      if (privateMessagesRef) privateMessagesRef.off();
+      privateMessagesRef = db.ref("messages/private/" + chatId);
+      privateMessagesRef.on("child_added", snap => {
         const msg = snap.val();
-        addMessageToChat(msg.sender, msg.text, msg.timestamp);
+        addMessageToPrivateChat(msg.sender, msg.text, msg.timestamp);
       });
     }
     
@@ -809,29 +946,54 @@
       });
     }
     
-    function addMessageToChat(sender, text, timestamp) {
+    function addMessageToPrivateChat(sender, text, timestamp) {
       const div = document.createElement("div");
       div.className = 'message ' + (sender === currentUser ? 'self' : 'other');
       div.innerHTML = `
         <strong>${sender}:</strong> ${text}
         <span class="message-time">${formatTime(timestamp)}</span>
       `;
-      document.getElementById("messages").appendChild(div);
-      document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+      document.getElementById("privateMessages").appendChild(div);
+      document.getElementById("privateMessages").scrollTop = document.getElementById("privateMessages").scrollHeight;
+    }
+    
+    function addMessageToGroupChat(sender, text, timestamp) {
+      const div = document.createElement("div");
+      div.className = 'message ' + (sender === currentUser ? 'self' : 'group');
+      div.innerHTML = `
+        <strong>${sender}:</strong> ${text}
+        <span class="message-time">${formatTime(timestamp)}</span>
+      `;
+      document.getElementById("groupMessages").appendChild(div);
+      document.getElementById("groupMessages").scrollTop = document.getElementById("groupMessages").scrollHeight;
     }
 
-    function sendMessage() {
-      const msg = document.getElementById("message").value.trim();
+    function sendPrivateMessage() {
+      const msg = document.getElementById("privateMessage").value.trim();
       if (msg && chatWith) {
         const chatId = currentUser < chatWith ? `${currentUser}_${chatWith}` : `${chatWith}_${currentUser}`;
         const timestamp = Date.now();
-        db.ref("messages/" + chatId).push({ 
+        db.ref("messages/private/" + chatId).push({ 
           sender: currentUser, 
           text: msg,
           timestamp: timestamp
         });
-        document.getElementById("message").value = '';
-        document.getElementById("message").style.height = 'auto';
+        document.getElementById("privateMessage").value = '';
+        document.getElementById("privateMessage").style.height = 'auto';
+      }
+    }
+    
+    function sendGroupMessage() {
+      const msg = document.getElementById("groupMessage").value.trim();
+      if (msg) {
+        const timestamp = Date.now();
+        db.ref("messages/group").push({ 
+          sender: currentUser, 
+          text: msg,
+          timestamp: timestamp
+        });
+        document.getElementById("groupMessage").value = '';
+        document.getElementById("groupMessage").style.height = 'auto';
       }
     }
     
@@ -841,16 +1003,47 @@
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
     
+    function showTab(tabName) {
+      activeTab = tabName;
+      
+      // Update tab UI
+      document.querySelectorAll('.chat-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      if (tabName === 'users') {
+        document.querySelector('.chat-tab:nth-child(1)').classList.add('active');
+        document.getElementById("usersTab").style.display = 'block';
+        document.getElementById("groupTab").style.display = 'none';
+      } else {
+        document.querySelector('.chat-tab:nth-child(2)').classList.add('active');
+        document.getElementById("usersTab").style.display = 'none';
+        document.getElementById("groupTab").style.display = 'block';
+      }
+    }
+    
     // Handle Enter key for sending messages (but allow Shift+Enter for new line)
-    document.getElementById("message").addEventListener('keydown', function(e) {
+    document.getElementById("privateMessage").addEventListener('keydown', function(e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        sendMessage();
+        sendPrivateMessage();
+      }
+    });
+    
+    document.getElementById("groupMessage").addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendGroupMessage();
       }
     });
     
     // Auto-resize textarea as user types
-    document.getElementById("message").addEventListener('input', function() {
+    document.getElementById("privateMessage").addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
+    
+    document.getElementById("groupMessage").addEventListener('input', function() {
       this.style.height = 'auto';
       this.style.height = (this.scrollHeight) + 'px';
     });
