@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>دردشة جماعية</title>
+  <title>محادثة متجاوبة - تصميم جديد</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -620,7 +620,15 @@
   </style>
 </head>
 <body>
+  <div class="decoration dec-1"></div>
+  <div class="decoration dec-2"></div>
+  
   <div class="container">
+    <div class="header">
+      <h1>مرحباً بك في الدردشة</h1>
+      <button id="logoutBtn" class="logout-btn" onclick="logout()" style="display: none;">تسجيل الخروج</button>
+    </div>
+
     <div id="register">
       <h2>تسجيل مستخدم جديد</h2>
       <input type="text" id="regName" placeholder="اسم المستخدم" required>
@@ -639,13 +647,30 @@
 
     <div id="chat">
       <h2>مرحبا <span id="userName"></span>!</h2>
-      <div id="usersList"></div>
-      <div id="chatArea" style="display: none;">
-        <h3>محادثة مع: <span id="chatWith"></span></h3>
-        <div id="messages"></div>
-        <div id="messageContainer">
-          <textarea id="message" placeholder="اكتب رسالة..." rows="2"></textarea>
-          <button onclick="sendMessage()">إرسال</button>
+      
+      <div class="chat-tabs">
+        <div class="chat-tab active" onclick="showTab('users')">المستخدمون</div>
+        <div class="chat-tab" onclick="showTab('group')">المجموعة العامة</div>
+      </div>
+      
+      <div id="usersTab">
+        <div id="usersList"></div>
+        <div id="privateChatArea" style="display: none;">
+          <h3>محادثة مع: <span id="chatWith"></span> <span id="partnerStatus" class="status-dot offline"></span></h3>
+          <div id="privateMessages"></div>
+          <div id="privateMessageContainer">
+            <textarea id="privateMessage" placeholder="اكتب رسالة..." rows="2"></textarea>
+            <button onclick="sendPrivateMessage()">إرسال</button>
+          </div>
+        </div>
+      </div>
+      
+      <div id="groupTab" style="display: none;">
+        <h3><span class="group-indicator">مجموعة</span>المجموعة العامة</h3>
+        <div id="groupMessages"></div>
+        <div id="groupMessageContainer">
+          <textarea id="groupMessage" placeholder="اكتب رسالة للمجموعة..." rows="2"></textarea>
+          <button onclick="sendGroupMessage()">إرسال للمجموعة</button>
         </div>
       </div>
     </div>
@@ -669,11 +694,17 @@
 
     let currentUser = localStorage.getItem("username");
     let chatWith = null;
-    let messagesRef = null;
+    let privateMessagesRef = null;
+    let groupMessagesRef = null;
+    let userButtons = {};
+    let partnerStatusRef = null;
     let presenceInterval = null;
+    let userStatusDatabaseRef = null;
+    let activeTab = 'users';
 
     if (currentUser) {
       showChat(currentUser);
+      document.getElementById("logoutBtn").style.display = 'block';
     } else {
       document.getElementById("login").style.display = 'block';
     }
@@ -681,39 +712,37 @@
     function showRegister() {
       document.getElementById("login").style.display = 'none';
       document.getElementById("register").style.display = 'block';
+      document.getElementById("regName").focus();
     }
 
     function showLogin() {
       document.getElementById("register").style.display = 'none';
       document.getElementById("login").style.display = 'block';
+      document.getElementById("loginName").focus();
     }
 
     function register() {
       const name = document.getElementById("regName").value.trim();
       const pass = document.getElementById("regPass").value.trim();
-      
       if (name && pass) {
         if (name.length < 3) {
           alert("اسم المستخدم يجب أن يكون 3 أحرف على الأقل");
           return;
         }
-        
-        db.ref("bannedUsers/" + name).once("value").then(snapshot => {
-          if (snapshot.exists()) {
-            alert("هذا المستخدم محظور ولا يمكن التسجيل به");
-            return;
-          }
-          
-          db.ref("users/" + name).set({ 
-            password: pass,
-            lastSeen: Date.now(),
-            isOnline: true,
-            registeredAt: Date.now()
-          }).then(() => {
+        db.ref("users/" + name).once("value", snap => {
+          if (snap.exists()) {
+            alert("الاسم مستخدم بالفعل");
+          } else {
+            db.ref("users/" + name).set({ 
+              password: pass,
+              lastSeen: Date.now(),
+              isOnline: true
+            });
             localStorage.setItem("username", name);
             currentUser = name;
             showChat(name);
-          });
+            document.getElementById("logoutBtn").style.display = 'block';
+          }
         });
       } else {
         alert("الرجاء إدخال اسم مستخدم وكلمة سر");
@@ -723,41 +752,50 @@
     function login() {
       const name = document.getElementById("loginName").value.trim();
       const pass = document.getElementById("loginPass").value.trim();
-      
       if (!name || !pass) {
         alert("الرجاء إدخال اسم مستخدم وكلمة سر");
         return;
       }
-      
-      db.ref("bannedUsers/" + name).once("value").then(banSnapshot => {
-        if (banSnapshot.exists()) {
-          const banData = banSnapshot.val();
-          const isBanned = banData.duration === 0 || 
-                          (banData.timestamp + (banData.duration * 86400000)) > Date.now();
-          
-          if (isBanned) {
-            let banMessage = "هذا المستخدم محظور. ";
-            if (banData.duration === 0) {
-              banMessage += "الحظر دائم";
-            } else {
-              const remainingDays = Math.ceil((banData.timestamp + (banData.duration * 86400000) - Date.now()) / (86400000));
-              banMessage += `مدة الحظر المتبقية: ${remainingDays} يوم`;
-            }
-            alert(banMessage);
-            return;
-          }
+      db.ref("users/" + name).once("value", snap => {
+        if (snap.exists() && snap.val().password === pass) {
+          localStorage.setItem("username", name);
+          currentUser = name;
+          showChat(name);
+          document.getElementById("logoutBtn").style.display = 'block';
+        } else {
+          alert("البيانات غير صحيحة");
         }
-        
-        db.ref("users/" + name).once("value").then(snap => {
-          if (snap.exists() && snap.val().password === pass) {
-            localStorage.setItem("username", name);
-            currentUser = name;
-            showChat(name);
-          } else {
-            alert("البيانات غير صحيحة");
-          }
-        });
       });
+    }
+
+    function logout() {
+      // Clear presence interval if exists
+      if (presenceInterval) {
+        clearInterval(presenceInterval);
+      }
+      
+      // Set user as offline before logging out
+      if (currentUser) {
+        db.ref("users/" + currentUser).update({ 
+          isOnline: false,
+          lastSeen: Date.now()
+        });
+        
+        // Cancel the onDisconnect handler
+        if (userStatusDatabaseRef) {
+          userStatusDatabaseRef.onDisconnect().cancel();
+        }
+      }
+      
+      localStorage.removeItem("username");
+      currentUser = null;
+      document.getElementById("register").style.display = 'none';
+      document.getElementById("chat").style.display = 'none';
+      document.getElementById("login").style.display = 'block';
+      document.getElementById("logoutBtn").style.display = 'none';
+      if (privateMessagesRef) privateMessagesRef.off();
+      if (groupMessagesRef) groupMessagesRef.off();
+      if (partnerStatusRef) partnerStatusRef.off();
     }
 
     function showChat(username) {
@@ -765,111 +803,249 @@
       document.getElementById("login").style.display = 'none';
       document.getElementById("chat").style.display = 'block';
       document.getElementById("userName").innerText = username;
+      loadUsers();
+      loadGroupMessages();
       
-      // تحديث حالة المستخدم
-      const userRef = db.ref("users/" + username);
-      userRef.update({
+      // Set up presence system
+      userStatusDatabaseRef = db.ref("users/" + username);
+      
+      // Update user status to online
+      userStatusDatabaseRef.update({ 
         isOnline: true,
         lastSeen: Date.now()
       });
       
-      userRef.onDisconnect().update({
+      // Set up onDisconnect to mark user as offline when connection drops
+      userStatusDatabaseRef.onDisconnect().update({
         isOnline: false,
         lastSeen: Date.now()
       });
       
-      // تحميل المستخدمين والرسائل
-      loadUsers();
+      // Update lastSeen periodically while user is active
+      presenceInterval = setInterval(() => {
+        userStatusDatabaseRef.update({ 
+          lastSeen: Date.now()
+        });
+      }, 20000); // Update every 20 seconds
+      
+      // Clear interval when user logs out or page unloads
+      window.addEventListener('beforeunload', () => {
+        clearInterval(presenceInterval);
+      });
     }
 
     function loadUsers() {
       const userListDiv = document.getElementById("usersList");
-      userListDiv.innerHTML = '';
       
-      db.ref("users").on("value", snapshot => {
-        snapshot.forEach(userSnap => {
+      // إنشاء عنصر العنوان مرة واحدة فقط
+      if (!document.getElementById("usersTitle")) {
+        const titleElement = document.createElement("h3");
+        titleElement.id = "usersTitle";
+        titleElement.style.gridColumn = "1/-1";
+        titleElement.textContent = "المستخدمون المتاحون:";
+        userListDiv.appendChild(titleElement);
+      }
+      
+      db.ref("users").on("value", snap => {
+        const currentUsers = {};
+        
+        snap.forEach(userSnap => {
           const name = userSnap.key;
           if (name !== currentUser) {
-            const userData = userSnap.val();
-            const isOnline = userData.isOnline && (Date.now() - userData.lastSeen) < 300000;
+            currentUsers[name] = true;
             
-            const userDiv = document.createElement("div");
-            userDiv.className = "user";
-            userDiv.innerHTML = `
-              <div class="user-name">${name}</div>
-              <div class="user-status ${isOnline ? 'online' : 'offline'}"></div>
-            `;
-            userDiv.onclick = () => startChat(name);
-            userListDiv.appendChild(userDiv);
+            if (!userButtons[name]) {
+              const btn = document.createElement("button");
+              btn.innerHTML = `
+                <div class="user-icon">${name.charAt(0).toUpperCase()}</div>
+                <span>${name}</span>
+              `;
+              btn.className = "user-button";
+              btn.onclick = () => startPrivateChat(name);
+              userListDiv.appendChild(btn);
+              userButtons[name] = btn;
+            }
+            
+            // تحديث حالة المستخدم
+            const userData = userSnap.val();
+            const isOnline = userData.isOnline && (Date.now() - (userData.lastSeen || 0)) < 30000;
+            
+            userButtons[name].style.opacity = isOnline ? '1' : '0.7';
+            userButtons[name].title = isOnline ? 'متصل الآن' : `آخر ظهور: ${formatTime(userData.lastSeen)}`;
+            
+            let statusDot = userButtons[name].querySelector('.status-dot');
+            if (!statusDot) {
+              statusDot = document.createElement('span');
+              statusDot.className = 'status-dot ' + (isOnline ? '' : 'offline');
+              userButtons[name].appendChild(statusDot);
+            } else {
+              statusDot.className = 'status-dot ' + (isOnline ? '' : 'offline');
+            }
+          }
+        });
+        
+        // إزالة المستخدمين الذين لم يعودوا موجودين
+        Object.keys(userButtons).forEach(name => {
+          if (!currentUsers[name] && name !== currentUser) {
+            if (userButtons[name].parentNode) {
+              userButtons[name].parentNode.removeChild(userButtons[name]);
+            }
+            delete userButtons[name];
           }
         });
       });
     }
-
-    function startChat(partner) {
-      chatWith = partner;
-      document.getElementById("chatWith").innerText = partner;
-      document.getElementById("messages").innerHTML = '';
-      document.getElementById("chatArea").style.display = 'block';
-      
-      const chatId = currentUser < partner ? `${currentUser}_${partner}` : `${partner}_${currentUser}`;
-      if (messagesRef) messagesRef.off();
-      
-      messagesRef = db.ref("messages/" + chatId);
-      messagesRef.on("child_added", snap => {
+    
+    function loadGroupMessages() {
+      if (groupMessagesRef) groupMessagesRef.off();
+      groupMessagesRef = db.ref("messages/group");
+      groupMessagesRef.on("child_added", snap => {
         const msg = snap.val();
-        addMessageToChat(msg.sender, msg.text, msg.timestamp);
+        addMessageToGroupChat(msg.sender, msg.text, msg.timestamp);
       });
     }
 
-    function addMessageToChat(sender, text, timestamp) {
+    function startPrivateChat(partner) {
+      // Highlight active chat button
+      Object.values(userButtons).forEach(btn => {
+        btn.classList.remove('active-chat');
+      });
+      if (userButtons[partner]) {
+        userButtons[partner].classList.add('active-chat');
+      }
+      
+      chatWith = partner;
+      document.getElementById("chatWith").innerText = partner;
+      document.getElementById("privateMessages").innerHTML = '';
+      document.getElementById("privateChatArea").style.display = 'block';
+      
+      // Update partner status
+      updatePartnerStatus(partner);
+      
+      const chatId = currentUser < partner ? `${currentUser}_${partner}` : `${partner}_${currentUser}`;
+      if (privateMessagesRef) privateMessagesRef.off();
+      privateMessagesRef = db.ref("messages/private/" + chatId);
+      privateMessagesRef.on("child_added", snap => {
+        const msg = snap.val();
+        addMessageToPrivateChat(msg.sender, msg.text, msg.timestamp);
+      });
+    }
+    
+    function updatePartnerStatus(partner) {
+      if (partnerStatusRef) partnerStatusRef.off();
+      
+      partnerStatusRef = db.ref("users/" + partner);
+      partnerStatusRef.on("value", snap => {
+        if (snap.exists()) {
+          const userData = snap.val();
+          const isOnline = userData.isOnline && (Date.now() - (userData.lastSeen || 0)) < 30000;
+          const statusDot = document.getElementById("partnerStatus");
+          statusDot.className = 'status-dot ' + (isOnline ? '' : 'offline');
+          statusDot.title = isOnline ? 'متصل الآن' : `آخر ظهور: ${formatTime(userData.lastSeen)}`;
+        }
+      });
+    }
+    
+    function addMessageToPrivateChat(sender, text, timestamp) {
       const div = document.createElement("div");
       div.className = 'message ' + (sender === currentUser ? 'self' : 'other');
       div.innerHTML = `
-        <div class="message-sender">${sender}</div>
-        <div class="message-text">${text}</div>
-        <div class="message-time">${formatTime(timestamp)}</div>
+        <strong>${sender}:</strong> ${text}
+        <span class="message-time">${formatTime(timestamp)}</span>
       `;
-      document.getElementById("messages").appendChild(div);
-      document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+      document.getElementById("privateMessages").appendChild(div);
+      document.getElementById("privateMessages").scrollTop = document.getElementById("privateMessages").scrollHeight;
+    }
+    
+    function addMessageToGroupChat(sender, text, timestamp) {
+      const div = document.createElement("div");
+      div.className = 'message ' + (sender === currentUser ? 'self' : 'group');
+      div.innerHTML = `
+        <strong>${sender}:</strong> ${text}
+        <span class="message-time">${formatTime(timestamp)}</span>
+      `;
+      document.getElementById("groupMessages").appendChild(div);
+      document.getElementById("groupMessages").scrollTop = document.getElementById("groupMessages").scrollHeight;
     }
 
-    function sendMessage() {
-      db.ref("bannedUsers/" + currentUser).once("value").then(snapshot => {
-        if (snapshot.exists()) {
-          const banData = snapshot.val();
-          const isBanned = banData.duration === 0 || 
-                          (banData.timestamp + (banData.duration * 86400000)) > Date.now();
-          
-          if (isBanned) {
-            alert("تم حظرك من النظام ولا يمكنك إرسال رسائل");
-            return;
-          }
-        }
-        
-        const msg = document.getElementById("message").value.trim();
-        if (msg && chatWith) {
-          const chatId = currentUser < chatWith ? `${currentUser}_${chatWith}` : `${chatWith}_${currentUser}`;
-          db.ref("messages/" + chatId).push({
-            sender: currentUser,
-            text: msg,
-            timestamp: Date.now()
-          });
-          document.getElementById("message").value = '';
-        }
-      });
+    function sendPrivateMessage() {
+      const msg = document.getElementById("privateMessage").value.trim();
+      if (msg && chatWith) {
+        const chatId = currentUser < chatWith ? `${currentUser}_${chatWith}` : `${chatWith}_${currentUser}`;
+        const timestamp = Date.now();
+        db.ref("messages/private/" + chatId).push({ 
+          sender: currentUser, 
+          text: msg,
+          timestamp: timestamp
+        });
+        document.getElementById("privateMessage").value = '';
+        document.getElementById("privateMessage").style.height = 'auto';
+      }
     }
-
+    
+    function sendGroupMessage() {
+      const msg = document.getElementById("groupMessage").value.trim();
+      if (msg) {
+        const timestamp = Date.now();
+        db.ref("messages/group").push({ 
+          sender: currentUser, 
+          text: msg,
+          timestamp: timestamp
+        });
+        document.getElementById("groupMessage").value = '';
+        document.getElementById("groupMessage").style.height = 'auto';
+      }
+    }
+    
     function formatTime(timestamp) {
+      if (!timestamp) return 'غير معروف';
       const date = new Date(timestamp);
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
-
-    document.getElementById("message").addEventListener('keypress', function(e) {
+    
+    function showTab(tabName) {
+      activeTab = tabName;
+      
+      // Update tab UI
+      document.querySelectorAll('.chat-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      if (tabName === 'users') {
+        document.querySelector('.chat-tab:nth-child(1)').classList.add('active');
+        document.getElementById("usersTab").style.display = 'block';
+        document.getElementById("groupTab").style.display = 'none';
+      } else {
+        document.querySelector('.chat-tab:nth-child(2)').classList.add('active');
+        document.getElementById("usersTab").style.display = 'none';
+        document.getElementById("groupTab").style.display = 'block';
+      }
+    }
+    
+    // Handle Enter key for sending messages (but allow Shift+Enter for new line)
+    document.getElementById("privateMessage").addEventListener('keydown', function(e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        sendMessage();
+        sendPrivateMessage();
       }
+    });
+    
+    document.getElementById("groupMessage").addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendGroupMessage();
+      }
+    });
+    
+    // Auto-resize textarea as user types
+    document.getElementById("privateMessage").addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
+    
+    document.getElementById("groupMessage").addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
     });
   </script>
 </body>
