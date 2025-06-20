@@ -685,6 +685,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
       z-index: 1000;
       animation: pulse 1.5s infinite;
+      cursor: pointer;
     }
     
     .notification-window {
@@ -922,6 +923,12 @@
     let notifications = [];
     let notificationBadgeVisible = false;
 
+    // Load read messages from localStorage
+    let readMessages = JSON.parse(localStorage.getItem('readMessages')) || {
+      private: {},
+      group: null
+    };
+
     if (currentUser) {
       showChat(currentUser);
       document.getElementById("logoutBtn").style.display = 'block';
@@ -1127,6 +1134,8 @@
             }
             delete userButtons[name];
             delete unreadPrivateMessages[name];
+            delete readMessages.private[name];
+            saveReadMessages();
           }
         });
       });
@@ -1136,14 +1145,19 @@
       const chatId = currentUser < partner ? `${currentUser}_${partner}` : `${partner}_${currentUser}`;
       db.ref("messages/private/" + chatId).on("child_added", snap => {
         const msg = snap.val();
+        const messageId = snap.key;
         
-        // Only process if message is from the other user
-        if (msg.sender === partner) {
+        // Check if message is already read
+        const isRead = readMessages.private[partner] && 
+                      readMessages.private[partner].includes(messageId);
+        
+        // Only process if message is from the other user and not read
+        if (msg.sender === partner && !isRead) {
           // If private chat is not open or not with this user
           if (!isPrivateChatOpen || chatWith !== partner) {
-            unreadPrivateMessages[partner]++;
+            unreadPrivateMessages[partner] = (unreadPrivateMessages[partner] || 0) + 1;
             updateUnreadBadge(partner);
-            showNewMessageNotification(msg.sender, msg.text, msg.timestamp, 'private');
+            showNewMessageNotification(msg.sender, msg.text, msg.timestamp, 'private', messageId, partner);
             checkUnreadMessages();
           }
         }
@@ -1155,15 +1169,21 @@
       groupMessagesRef = db.ref("messages/group");
       groupMessagesRef.on("child_added", snap => {
         const msg = snap.val();
-        addMessageToGroupChat(msg.sender, msg.text, msg.timestamp);
+        const messageId = snap.key;
         
-        // Check if group tab is not active to increment unread count
-        if (!isGroupTabActive) {
+        // Check if message is already read
+        const isRead = readMessages.group === messageId;
+        
+        // Check if group tab is not active and message is not read
+        if (!isGroupTabActive && !isRead) {
           unreadGroupMessages++;
           updateGroupUnreadBadge();
-          showNewMessageNotification(msg.sender, msg.text, msg.timestamp, 'group');
+          showNewMessageNotification(msg.sender, msg.text, msg.timestamp, 'group', messageId);
           checkUnreadMessages();
         }
+        
+        // Always add message to chat (even if read)
+        addMessageToGroupChat(msg.sender, msg.text, msg.timestamp);
       });
     }
 
@@ -1180,6 +1200,9 @@
       document.getElementById("chatWith").innerText = partner;
       document.getElementById("privateMessages").innerHTML = '';
       document.getElementById("privateChatArea").style.display = 'block';
+      
+      // Mark all messages from this partner as read
+      markPrivateMessagesAsRead(partner);
       
       // Reset unread count for this user
       unreadPrivateMessages[partner] = 0;
@@ -1199,6 +1222,45 @@
         const msg = snap.val();
         addMessageToPrivateChat(msg.sender, msg.text, msg.timestamp);
       });
+    }
+    
+    function markPrivateMessagesAsRead(partner) {
+      const chatId = currentUser < partner ? `${currentUser}_${partner}` : `${partner}_${currentUser}`;
+      db.ref("messages/private/" + chatId).once("value", snap => {
+        const messages = snap.val() || {};
+        const messageIds = Object.keys(messages)
+          .filter(key => messages[key].sender === partner);
+        
+        if (!readMessages.private[partner]) {
+          readMessages.private[partner] = [];
+        }
+        
+        // Add new message IDs to read list
+        messageIds.forEach(id => {
+          if (!readMessages.private[partner].includes(id)) {
+            readMessages.private[partner].push(id);
+          }
+        });
+        
+        saveReadMessages();
+      });
+    }
+    
+    function markGroupMessagesAsRead() {
+      db.ref("messages/group").once("value", snap => {
+        const messages = snap.val() || {};
+        const messageIds = Object.keys(messages);
+        
+        // Mark the latest message as read
+        if (messageIds.length > 0) {
+          readMessages.group = messageIds[messageIds.length - 1];
+          saveReadMessages();
+        }
+      });
+    }
+    
+    function saveReadMessages() {
+      localStorage.setItem('readMessages', JSON.stringify(readMessages));
     }
     
     function updatePartnerStatus(partner) {
@@ -1309,6 +1371,9 @@
         document.getElementById("groupTab").style.display = 'block';
         isGroupTabActive = true;
         
+        // Mark all group messages as read
+        markGroupMessagesAsRead();
+        
         // Reset unread group messages count
         unreadGroupMessages = 0;
         updateGroupUnreadBadge();
@@ -1407,13 +1472,15 @@
       document.getElementById('unreadNotification').classList.remove('show');
     }
     
-    function showNewMessageNotification(sender, text, timestamp, type) {
+    function showNewMessageNotification(sender, text, timestamp, type, messageId, partner = null) {
       // Add to notifications list
       const notification = {
         sender,
         text,
         timestamp,
         type,
+        messageId,
+        partner,
         read: false
       };
       
@@ -1490,7 +1557,32 @@
       document.getElementById('notificationWindow').classList.add('show');
       
       // Mark notifications as read
-      notifications.forEach(notif => notif.read = true);
+      notifications.forEach(notif => {
+        notif.read = true;
+        if (notif.type === 'private' && notif.partner) {
+          if (!readMessages.private[notif.partner]) {
+            readMessages.private[notif.partner] = [];
+          }
+          if (!readMessages.private[notif.partner].includes(notif.messageId)) {
+            readMessages.private[notif.partner].push(notif.messageId);
+          }
+        } else if (notif.type === 'group') {
+          readMessages.group = notif.messageId;
+        }
+      });
+      
+      saveReadMessages();
+      
+      // Reset unread counts
+      unreadGroupMessages = 0;
+      updateGroupUnreadBadge();
+      
+      for (const partner in unreadPrivateMessages) {
+        unreadPrivateMessages[partner] = 0;
+        updateUnreadBadge(partner);
+      }
+      
+      checkUnreadMessages();
     }
     
     function hideNotifications() {
