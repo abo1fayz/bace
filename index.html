@@ -667,6 +667,123 @@
       font-weight: bold;
     }
     
+    /* Notification styles */
+    .notification-badge {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background-color: var(--secondary-color);
+      color: white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8em;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      z-index: 1000;
+      animation: pulse 1.5s infinite;
+    }
+    
+    .notification-window {
+      position: fixed;
+      top: 50px;
+      right: 10px;
+      background: var(--white);
+      padding: 15px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      border-left: 4px solid var(--primary-color);
+      z-index: 1000;
+      max-width: 300px;
+      transform: translateX(150%);
+      transition: transform 0.3s ease;
+    }
+    
+    .notification-window.show {
+      transform: translateX(0);
+    }
+    
+    .notification-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    .notification-close {
+      cursor: pointer;
+      color: var(--secondary-color);
+      font-weight: bold;
+    }
+    
+    .notification-item {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+    
+    .notification-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--gradient);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    
+    .notification-group-icon {
+      background: linear-gradient(135deg, #4cc9f0, #4895ef);
+    }
+    
+    .notification-content {
+      flex-grow: 1;
+    }
+    
+    .notification-sender {
+      font-weight: bold;
+      margin-bottom: 3px;
+    }
+    
+    .notification-text {
+      font-size: 0.9em;
+      color: var(--text-color);
+      opacity: 0.8;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .notification-time {
+      font-size: 0.7em;
+      color: rgba(0,0,0,0.5);
+      margin-top: 3px;
+    }
+    
+    .notification-view-all {
+      display: block;
+      text-align: center;
+      margin-top: 10px;
+      color: var(--primary-color);
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
     @media (max-width: 480px) {
       .chat-tabs {
         justify-content: space-around;
@@ -684,6 +801,12 @@
         right: 10px;
         left: 10px;
         text-align: center;
+      }
+      
+      .notification-window {
+        right: 10px;
+        left: 10px;
+        max-width: none;
       }
     }
   </style>
@@ -751,6 +874,19 @@
     <span class="close-btn" onclick="hideUnreadNotification()">✕</span>
   </div>
 
+  <!-- Notification badge -->
+  <div id="notificationBadge" class="notification-badge" style="display: none;" onclick="toggleNotifications()"></div>
+
+  <!-- Notification window -->
+  <div id="notificationWindow" class="notification-window">
+    <div class="notification-header">
+      <h4>الإشعارات الجديدة</h4>
+      <span class="notification-close" onclick="hideNotifications()">✕</span>
+    </div>
+    <div id="notificationList"></div>
+    <span class="notification-view-all" onclick="viewAllNotifications()">عرض الكل</span>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
@@ -783,6 +919,8 @@
     let isGroupTabActive = false;
     let isPrivateChatOpen = false;
     let lastNotificationTime = 0;
+    let notifications = [];
+    let notificationBadgeVisible = false;
 
     if (currentUser) {
       showChat(currentUser);
@@ -878,6 +1016,10 @@
       if (privateMessagesRef) privateMessagesRef.off();
       if (groupMessagesRef) groupMessagesRef.off();
       if (partnerStatusRef) partnerStatusRef.off();
+      
+      // Hide notifications
+      hideNotifications();
+      document.getElementById("notificationBadge").style.display = 'none';
     }
 
     function showChat(username) {
@@ -891,6 +1033,7 @@
       // Initialize unread messages object
       unreadPrivateMessages = {};
       unreadGroupMessages = 0;
+      notifications = [];
       
       // Set up presence system
       userStatusDatabaseRef = db.ref("users/" + username);
@@ -953,6 +1096,9 @@
               
               // Initialize unread count for this user
               unreadPrivateMessages[name] = 0;
+              
+              // Listen for new private messages
+              setupPrivateMessageListener(name);
             }
             
             // تحديث حالة المستخدم
@@ -986,6 +1132,24 @@
       });
     }
     
+    function setupPrivateMessageListener(partner) {
+      const chatId = currentUser < partner ? `${currentUser}_${partner}` : `${partner}_${currentUser}`;
+      db.ref("messages/private/" + chatId).on("child_added", snap => {
+        const msg = snap.val();
+        
+        // Only process if message is from the other user
+        if (msg.sender === partner) {
+          // If private chat is not open or not with this user
+          if (!isPrivateChatOpen || chatWith !== partner) {
+            unreadPrivateMessages[partner]++;
+            updateUnreadBadge(partner);
+            showNewMessageNotification(msg.sender, msg.text, msg.timestamp, 'private');
+            checkUnreadMessages();
+          }
+        }
+      });
+    }
+    
     function loadGroupMessages() {
       if (groupMessagesRef) groupMessagesRef.off();
       groupMessagesRef = db.ref("messages/group");
@@ -997,6 +1161,7 @@
         if (!isGroupTabActive) {
           unreadGroupMessages++;
           updateGroupUnreadBadge();
+          showNewMessageNotification(msg.sender, msg.text, msg.timestamp, 'group');
           checkUnreadMessages();
         }
       });
@@ -1033,13 +1198,6 @@
       privateMessagesRef.on("child_added", snap => {
         const msg = snap.val();
         addMessageToPrivateChat(msg.sender, msg.text, msg.timestamp);
-        
-        // Check if message is from partner and private chat is not open
-        if (msg.sender === partner && !isPrivateChatOpen) {
-          unreadPrivateMessages[partner]++;
-          updateUnreadBadge(partner);
-          checkUnreadMessages();
-        }
       });
     }
     
@@ -1203,6 +1361,16 @@
         totalUnread += count;
       });
       
+      // Update notification badge
+      if (totalUnread > 0) {
+        document.getElementById("notificationBadge").style.display = 'flex';
+        document.getElementById("notificationBadge").textContent = totalUnread > 9 ? '9+' : totalUnread;
+        notificationBadgeVisible = true;
+      } else {
+        document.getElementById("notificationBadge").style.display = 'none';
+        notificationBadgeVisible = false;
+      }
+      
       // Show notification if there are unread messages and it's been at least 5 seconds since last notification
       if (totalUnread > 0 && Date.now() - lastNotificationTime > 5000) {
         let message = '';
@@ -1237,6 +1405,102 @@
     
     function hideUnreadNotification() {
       document.getElementById('unreadNotification').classList.remove('show');
+    }
+    
+    function showNewMessageNotification(sender, text, timestamp, type) {
+      // Add to notifications list
+      const notification = {
+        sender,
+        text,
+        timestamp,
+        type,
+        read: false
+      };
+      
+      notifications.unshift(notification);
+      updateNotificationWindow();
+      
+      // Show notification badge if not already visible
+      if (!notificationBadgeVisible) {
+        document.getElementById("notificationBadge").style.display = 'flex';
+        document.getElementById("notificationBadge").textContent = '1';
+        notificationBadgeVisible = true;
+      }
+      
+      // Play notification sound (optional)
+      playNotificationSound();
+    }
+    
+    function playNotificationSound() {
+      // You can add a notification sound here
+      // Example: new Audio('notification.mp3').play();
+    }
+    
+    function updateNotificationWindow() {
+      const notificationList = document.getElementById('notificationList');
+      notificationList.innerHTML = '';
+      
+      // Show up to 5 latest notifications
+      const latestNotifications = notifications.slice(0, 5);
+      
+      latestNotifications.forEach(notif => {
+        const item = document.createElement('div');
+        item.className = 'notification-item';
+        
+        const icon = document.createElement('div');
+        icon.className = `notification-icon ${notif.type === 'group' ? 'notification-group-icon' : ''}`;
+        icon.textContent = notif.sender.charAt(0).toUpperCase();
+        
+        const content = document.createElement('div');
+        content.className = 'notification-content';
+        
+        const sender = document.createElement('div');
+        sender.className = 'notification-sender';
+        sender.textContent = notif.type === 'group' ? `${notif.sender} (المجموعة)` : notif.sender;
+        
+        const text = document.createElement('div');
+        text.className = 'notification-text';
+        text.textContent = notif.text;
+        
+        const time = document.createElement('div');
+        time.className = 'notification-time';
+        time.textContent = formatTime(notif.timestamp);
+        
+        content.appendChild(sender);
+        content.appendChild(text);
+        content.appendChild(time);
+        
+        item.appendChild(icon);
+        item.appendChild(content);
+        
+        notificationList.appendChild(item);
+      });
+    }
+    
+    function toggleNotifications() {
+      const window = document.getElementById('notificationWindow');
+      if (window.classList.contains('show')) {
+        hideNotifications();
+      } else {
+        showNotifications();
+      }
+    }
+    
+    function showNotifications() {
+      document.getElementById('notificationWindow').classList.add('show');
+      
+      // Mark notifications as read
+      notifications.forEach(notif => notif.read = true);
+    }
+    
+    function hideNotifications() {
+      document.getElementById('notificationWindow').classList.remove('show');
+    }
+    
+    function viewAllNotifications() {
+      hideNotifications();
+      // Here you can implement viewing all notifications in a separate page
+      alert('سيتم عرض جميع الإشعارات هنا في التطبيق الكامل');
     }
     
     // Handle Enter key for sending messages (but allow Shift+Enter for new line)
