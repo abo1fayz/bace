@@ -605,6 +605,68 @@
       left: 0;
     }
     
+    /* Unread messages styles */
+    .unread-badge {
+      position: absolute;
+      top: -6px;
+      left: -6px;
+      background-color: var(--secondary-color);
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7em;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      animation: pulse 1.5s infinite;
+    }
+    
+    .unread-notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--white);
+      padding: 15px 20px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      border-left: 4px solid var(--primary-color);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+      transform: translateX(150%);
+      transition: transform 0.3s ease;
+    }
+    
+    .unread-notification.show {
+      transform: translateX(0);
+    }
+    
+    .unread-notification .close-btn {
+      cursor: pointer;
+      color: var(--secondary-color);
+      font-weight: bold;
+    }
+    
+    .group-tab-unread {
+      position: absolute;
+      top: -5px;
+      left: -5px;
+      background-color: var(--secondary-color);
+      color: white;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6em;
+      font-weight: bold;
+    }
+    
     @media (max-width: 480px) {
       .chat-tabs {
         justify-content: space-around;
@@ -614,6 +676,13 @@
         padding: 8px 10px;
         font-size: 0.9em;
         flex: 1;
+        text-align: center;
+      }
+      
+      .unread-notification {
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
         text-align: center;
       }
     }
@@ -676,6 +745,12 @@
     </div>
   </div>
 
+  <!-- Unread messages notification -->
+  <div id="unreadNotification" class="unread-notification">
+    <span id="unreadMessage"></span>
+    <span class="close-btn" onclick="hideUnreadNotification()">✕</span>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
@@ -703,6 +778,11 @@
     let presenceInterval = null;
     let userStatusDatabaseRef = null;
     let activeTab = 'users';
+    let unreadPrivateMessages = {};
+    let unreadGroupMessages = 0;
+    let isGroupTabActive = false;
+    let isPrivateChatOpen = false;
+    let lastNotificationTime = 0;
 
     if (currentUser) {
       showChat(currentUser);
@@ -808,6 +888,10 @@
       loadUsers();
       loadGroupMessages();
       
+      // Initialize unread messages object
+      unreadPrivateMessages = {};
+      unreadGroupMessages = 0;
+      
       // Set up presence system
       userStatusDatabaseRef = db.ref("users/" + username);
       
@@ -866,6 +950,9 @@
               btn.onclick = () => startPrivateChat(name);
               userListDiv.appendChild(btn);
               userButtons[name] = btn;
+              
+              // Initialize unread count for this user
+              unreadPrivateMessages[name] = 0;
             }
             
             // تحديث حالة المستخدم
@@ -893,6 +980,7 @@
               userButtons[name].parentNode.removeChild(userButtons[name]);
             }
             delete userButtons[name];
+            delete unreadPrivateMessages[name];
           }
         });
       });
@@ -904,6 +992,13 @@
       groupMessagesRef.on("child_added", snap => {
         const msg = snap.val();
         addMessageToGroupChat(msg.sender, msg.text, msg.timestamp);
+        
+        // Check if group tab is not active to increment unread count
+        if (!isGroupTabActive) {
+          unreadGroupMessages++;
+          updateGroupUnreadBadge();
+          checkUnreadMessages();
+        }
       });
     }
 
@@ -921,6 +1016,14 @@
       document.getElementById("privateMessages").innerHTML = '';
       document.getElementById("privateChatArea").style.display = 'block';
       
+      // Reset unread count for this user
+      unreadPrivateMessages[partner] = 0;
+      updateUnreadBadge(partner);
+      checkUnreadMessages();
+      
+      // Mark that private chat is open
+      isPrivateChatOpen = true;
+      
       // Update partner status
       updatePartnerStatus(partner);
       
@@ -930,6 +1033,13 @@
       privateMessagesRef.on("child_added", snap => {
         const msg = snap.val();
         addMessageToPrivateChat(msg.sender, msg.text, msg.timestamp);
+        
+        // Check if message is from partner and private chat is not open
+        if (msg.sender === partner && !isPrivateChatOpen) {
+          unreadPrivateMessages[partner]++;
+          updateUnreadBadge(partner);
+          checkUnreadMessages();
+        }
       });
     }
     
@@ -1031,11 +1141,102 @@
         document.querySelector('.chat-tab:nth-child(1)').classList.add('active');
         document.getElementById("usersTab").style.display = 'block';
         document.getElementById("groupTab").style.display = 'none';
+        isGroupTabActive = false;
+        
+        // Mark that private chat may be closed
+        isPrivateChatOpen = false;
       } else {
         document.querySelector('.chat-tab:nth-child(2)').classList.add('active');
         document.getElementById("usersTab").style.display = 'none';
         document.getElementById("groupTab").style.display = 'block';
+        isGroupTabActive = true;
+        
+        // Reset unread group messages count
+        unreadGroupMessages = 0;
+        updateGroupUnreadBadge();
       }
+      
+      checkUnreadMessages();
+    }
+    
+    function updateUnreadBadge(username) {
+      const btn = userButtons[username];
+      if (!btn) return;
+      
+      // Remove existing badge if any
+      const existingBadge = btn.querySelector('.unread-badge');
+      if (existingBadge) {
+        btn.removeChild(existingBadge);
+      }
+      
+      // Add new badge if there are unread messages
+      if (unreadPrivateMessages[username] > 0) {
+        const badge = document.createElement('span');
+        badge.className = 'unread-badge';
+        badge.textContent = unreadPrivateMessages[username] > 9 ? '9+' : unreadPrivateMessages[username];
+        btn.appendChild(badge);
+      }
+    }
+    
+    function updateGroupUnreadBadge() {
+      const groupTab = document.querySelector('.chat-tab:nth-child(2)');
+      
+      // Remove existing badge if any
+      const existingBadge = groupTab.querySelector('.group-tab-unread');
+      if (existingBadge) {
+        groupTab.removeChild(existingBadge);
+      }
+      
+      // Add new badge if there are unread messages
+      if (unreadGroupMessages > 0) {
+        const badge = document.createElement('span');
+        badge.className = 'group-tab-unread';
+        badge.textContent = unreadGroupMessages > 9 ? '9+' : unreadGroupMessages;
+        groupTab.appendChild(badge);
+      }
+    }
+    
+    function checkUnreadMessages() {
+      // Calculate total unread messages
+      let totalUnread = unreadGroupMessages;
+      Object.values(unreadPrivateMessages).forEach(count => {
+        totalUnread += count;
+      });
+      
+      // Show notification if there are unread messages and it's been at least 5 seconds since last notification
+      if (totalUnread > 0 && Date.now() - lastNotificationTime > 5000) {
+        let message = '';
+        
+        if (unreadGroupMessages > 0 && Object.values(unreadPrivateMessages).some(c => c > 0)) {
+          message = `لديك ${unreadGroupMessages} رسالة جديدة في المجموعة ورسائل جديدة في المحادثات الخاصة`;
+        } else if (unreadGroupMessages > 0) {
+          message = `لديك ${unreadGroupMessages} رسالة جديدة في المجموعة`;
+        } else {
+          const privateUnread = Object.entries(unreadPrivateMessages)
+            .filter(([_, count]) => count > 0)
+            .map(([name, count]) => `${count} من ${name}`)
+            .join('، ');
+          message = `لديك رسائل جديدة من: ${privateUnread}`;
+        }
+        
+        showUnreadNotification(message);
+        lastNotificationTime = Date.now();
+      }
+    }
+    
+    function showUnreadNotification(message) {
+      const notification = document.getElementById('unreadNotification');
+      document.getElementById('unreadMessage').textContent = message;
+      notification.classList.add('show');
+      
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 5000);
+    }
+    
+    function hideUnreadNotification() {
+      document.getElementById('unreadNotification').classList.remove('show');
     }
     
     // Handle Enter key for sending messages (but allow Shift+Enter for new line)
