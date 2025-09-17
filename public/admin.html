@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>لوحة التحكم - المكتبة</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; direction: rtl; }
+    input, textarea, button { display: block; margin: 10px 0; padding: 8px; width: 300px; }
+    .product-card { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+    .product-card img { max-width: 150px; display: block; margin-bottom: 10px; }
+    .hidden { display: none; }
+    .error { color: red; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>لوحة التحكم - إدارة المنتجات</h1>
+
+  <!-- تسجيل الدخول -->
+  <div id="loginDiv">
+    <input type="password" id="adminPass" placeholder="أدخل كلمة المرور">
+    <button id="loginBtn">دخول</button>
+  </div>
+
+  <!-- رسالة خطأ -->
+  <div id="errorMsg" class="error hidden"></div>
+
+  <!-- لوحة التحكم -->
+  <div id="adminPanel" class="hidden">
+    <form id="productForm">
+      <input type="text" id="name" placeholder="اسم المنتج" required>
+      <input type="text" id="category" placeholder="التصنيف" required>
+      <input type="number" id="price" placeholder="السعر" required>
+      <input type="file" id="imageFile" accept="image/*" required>
+      <textarea id="description" placeholder="الوصف"></textarea>
+      <button type="submit">أضف المنتج</button>
+    </form>
+
+    <h2>المنتجات الحالية</h2>
+    <div id="productList"></div>
+  </div>
+
+  <!-- مكتبة Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.36.0/dist/umd/supabase.min.js"></script>
+
+  <script>
+    // الانتظار حتى يتم تحميل جميع الموارد
+    window.addEventListener('load', () => {
+      // التحقق من تحميل Supabase بشكل صحيح
+      if (typeof window.supabase === 'undefined') {
+        document.getElementById('errorMsg').textContent = 'خطأ في تحميل مكتبة Supabase. يرجى التحقق من اتصال الإنترنت.';
+        document.getElementById('errorMsg').classList.remove('hidden');
+        return;
+      }
+
+      // ===== إعدادات =====
+      const ADMIN_PASSWORD = "12345"; // كلمة المرور
+      const API_URL = "http://localhost:5000/api/products"; // غيّر عند رفع السيرفر
+
+      // Supabase
+      const SUPABASE_URL = "https://ikpijsdqmavklpgunumm.supabase.co"; // ضع رابط مشروعك
+      const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrcGlqc2RxbWF2a2xwZ3VudW1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzNzUzODgsImV4cCI6MjA3MDk1MTM4OH0.uC6t3PgZYOMQuWxFQrFy9aXIR4um0X1Lsf8SkplhZlc"; // ضع المفتاح العام
+      const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      const STORAGE_BUCKET = "videos";
+
+      // عناصر DOM
+      const loginDiv = document.getElementById("loginDiv");
+      const adminPanel = document.getElementById("adminPanel");
+      const loginBtn = document.getElementById("loginBtn");
+      const productForm = document.getElementById("productForm");
+      const productList = document.getElementById("productList");
+      const errorMsg = document.getElementById("errorMsg");
+
+      // ===== تسجيل الدخول =====
+      loginBtn.addEventListener("click", () => {
+        const pass = document.getElementById("adminPass").value.trim();
+        if(pass === ADMIN_PASSWORD){
+          loginDiv.classList.add("hidden");
+          adminPanel.classList.remove("hidden");
+          loadProducts();
+        } else {
+          alert("كلمة المرور غير صحيحة");
+        }
+      });
+
+      // ===== جلب وعرض المنتجات =====
+      function loadProducts() {
+        fetch(API_URL)
+          .then(res => {
+            if (!res.ok) {
+              throw new Error('فشل في جلب البيانات من السيرفر');
+            }
+            return res.json();
+          })
+          .then(products => {
+            productList.innerHTML = "";
+            products.forEach(p => {
+              const card = document.createElement("div");
+              card.className = "product-card";
+              card.innerHTML = `
+                <img src="${p.image}" alt="${p.name}" />
+                <h3>${p.name}</h3>
+                <p>التصنيف: ${p.category}</p>
+                <p>السعر: ${p.price} $</p>
+                <p>${p.description}</p>
+                <button class="editBtn">تعديل</button>
+                <button class="deleteBtn">حذف</button>
+              `;
+
+              // تعديل المنتج
+              card.querySelector(".editBtn").addEventListener("click", async () => {
+                const newName = prompt("اسم المنتج:", p.name) || p.name;
+                const newCategory = prompt("التصنيف:", p.category) || p.category;
+                const newPrice = parseFloat(prompt("السعر:", p.price)) || p.price;
+                const newDesc = prompt("الوصف:", p.description) || p.description;
+
+                const changeImage = confirm("هل تريد تغيير الصورة؟");
+                let newImageUrl = p.image;
+
+                if(changeImage){
+                  const fileInput = document.createElement("input");
+                  fileInput.type = "file";
+                  fileInput.accept = "image/*";
+                  fileInput.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if(file){
+                      try {
+                        const fileName = `${Date.now()}_${file.name}`;
+                        const { data, error } = await supabaseClient.storage
+                          .from(STORAGE_BUCKET)
+                          .upload(fileName, file);
+                        
+                        if(error){ 
+                          alert("فشل رفع الصورة: " + error.message); 
+                          return; 
+                        }
+                        
+                        const { data: urlData } = supabaseClient.storage
+                          .from(STORAGE_BUCKET)
+                          .getPublicUrl(fileName);
+                        
+                        newImageUrl = urlData.publicUrl;
+                        updateProduct(p._id, newName, newCategory, newPrice, newDesc, newImageUrl);
+                      } catch (err) {
+                        alert("حدث خطأ أثناء رفع الصورة: " + err.message);
+                      }
+                    }
+                  };
+                  fileInput.click();
+                  return;
+                } else {
+                  updateProduct(p._id, newName, newCategory, newPrice, newDesc, newImageUrl);
+                }
+              });
+
+              // حذف المنتج
+              card.querySelector(".deleteBtn").addEventListener("click", () => {
+                if(confirm(`هل تريد حذف المنتج: ${p.name}؟`)){
+                  fetch(`${API_URL}/${p._id}`, {
+                    method: "DELETE",
+                    headers: { "Authorization": ADMIN_PASSWORD }
+                  })
+                  .then(res => {
+                    if (!res.ok) {
+                      throw new Error('فشل في حذف المنتج');
+                    }
+                    return res.json();
+                  })
+                  .then(() => loadProducts())
+                  .catch(err => {
+                    console.error(err);
+                    alert("حدث خطأ أثناء الحذف: " + err.message);
+                  });
+                }
+              });
+
+              productList.appendChild(card);
+            });
+          })
+          .catch(err => {
+            console.error(err);
+            errorMsg.textContent = "خطأ في تحميل المنتجات: " + err.message;
+            errorMsg.classList.remove("hidden");
+          });
+      }
+
+      // ===== تحديث المنتج =====
+      function updateProduct(id, name, category, price, description, image){
+        fetch(`${API_URL}/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": ADMIN_PASSWORD
+          },
+          body: JSON.stringify({ name, category, price, description, image })
+        })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error('فشل في تحديث المنتج');
+          }
+          return res.json();
+        })
+        .then(() => loadProducts())
+        .catch(err => {
+          console.error(err);
+          alert("حدث خطأ أثناء التحديث: " + err.message);
+        });
+      }
+
+      // ===== إضافة منتج جديد =====
+      productForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById("name").value.trim();
+        const category = document.getElementById("category").value.trim();
+        const price = parseFloat(document.getElementById("price").value);
+        const description = document.getElementById("description").value.trim();
+        const imageFile = document.getElementById("imageFile").files[0];
+
+        if(!imageFile){ alert("الرجاء اختيار صورة"); return; }
+
+        try {
+          const fileName = `${Date.now()}_${imageFile.name}`;
+          const { data, error } = await supabaseClient.storage
+            .from(STORAGE_BUCKET)
+            .upload(fileName, imageFile);
+
+          if(error){ 
+            alert("فشل رفع الصورة: " + error.message); 
+            return; 
+          }
+
+          const { data: urlData } = supabaseClient.storage
+            .from(STORAGE_BUCKET)
+            .getPublicUrl(fileName);
+
+          const product = { 
+            name, 
+            category, 
+            price, 
+            description, 
+            image: urlData.publicUrl
+
+          };
+
+          const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": ADMIN_PASSWORD
+            },
+            body: JSON.stringify(product)
+          });
+
+          if (!response.ok) {
+            throw new Error('فشل في إضافة المنتج');
+          }
+
+          productForm.reset();
+          loadProducts();
+        } catch (err) {
+          console.error(err);
+          alert("حدث خطأ أثناء الإضافة: " + err.message);
+        }
+      });
+
+    }); // نهاية window.load
+  </script>
+</body>
+</html>
